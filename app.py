@@ -89,9 +89,9 @@ def webhook():
                             send_text_message(sender_id, "You can continue chatting here and a real person will reply soon.")
 
                         # Otherwise use GPT
-                        # else:
-                        #     reply = get_gpt_response(text)
-                        #     send_text_message(sender_id, reply, quick_replies=QUICK_REPLIES)
+                        else:
+                            reply = get_gpt_response(text)
+                            send_text_message(sender_id, reply, quick_replies=QUICK_REPLIES)
 
     return "ok", 200
 
