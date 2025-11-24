@@ -79,19 +79,17 @@ def webhook():
                         text = message["text"].lower().strip()
                         
 
-                        # Check for auto reply
                         auto_reply = get_auto_reply(text, sender_id)
                         if auto_reply:
                             send_text_message(sender_id, auto_reply, quick_replies=QUICK_REPLIES)
 
-                        # If user asked for human help, stop GPT responses
-                        elif sender_id in HUMAN_HANDOVER:
+                        else: 
+                            sender_id in HUMAN_HANDOVER
                             send_text_message(sender_id, "You can continue chatting here and a real person will reply soon.")
 
-                        # Otherwise use GPT
-                        else:
-                            reply = get_gpt_response(text)
-                            send_text_message(sender_id, reply, quick_replies=QUICK_REPLIES)
+                        # else:
+                        #     reply = get_gpt_response(text)
+                        #     send_text_message(sender_id, reply, quick_replies=QUICK_REPLIES)
 
     return "ok", 200
 
