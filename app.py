@@ -83,8 +83,7 @@ def webhook():
                         if auto_reply:
                             send_text_message(sender_id, auto_reply, quick_replies=QUICK_REPLIES)
 
-                        else: 
-                            sender_id in HUMAN_HANDOVER
+                        elif sender_id in HUMAN_HANDOVER:
                             send_text_message(sender_id, "You can continue chatting here and a real person will reply soon.")
 
                         # else:
