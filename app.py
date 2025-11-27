@@ -107,20 +107,15 @@ def webhook():
 
             if inv_result:  
                 send_text_message(sender_id, inv_result)
-                print(f"[INFO] Inventory reply sent to {sender_id}: {inv_result}")
                 continue
 
 
             if sender_id in HUMAN_HANDOVER:
-                send_text_message(sender_id,
-                    "A real person will reply soon — you can continue chatting here."
-                )
-                print(f"[INFO] Message from {sender_id} deferred to human agent.")
+               
                 continue
 
          
             reply = get_gpt_response(text)
-            print(f"[INFO] GPT reply: {reply}")
             send_text_message(sender_id, reply, quick_replies=QUICK_REPLIES)
 
     return "ok", 200
