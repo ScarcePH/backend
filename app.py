@@ -3,7 +3,7 @@ import requests
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-import re
+from inventory import search_item
 
 load_dotenv()
 
@@ -58,39 +58,73 @@ def privacy_policy():
 @app.route("/webhook", methods=["POST"])
 def webhook():
     data = request.get_json()
-    if data["object"] == "page":
-        for entry in data["entry"]:
-            for event in entry["messaging"]:
-                sender_id = event["sender"]["id"]
 
-                if "postback" in event:
-                    postback = event["postback"]
-                    if postback.get("payload") == "GET_STARTED":
-                        HUMAN_HANDOVER.discard(sender_id)
-                        welcome_text = "Hi there! Welcome to Scarceᴾᴴ 👋 \n How can we assist you today? \n Here are some quick options to get started:"
-                        send_text_message(sender_id, welcome_text, quick_replies=QUICK_REPLIES)
-                        continue
+    if data.get("object") != "page":
+        return "ignored", 200
+
+    for entry in data.get("entry", []):
+        for event in entry.get("messaging", []):
+
+            sender_id = event["sender"]["id"]
+
+        
+            if "postback" in event:
+                payload = event["postback"].get("payload")
+
+                if payload == "GET_STARTED":
+                    HUMAN_HANDOVER.discard(sender_id)
+
+                    welcome_text = (
+                        "Hi there! Welcome to Scarceᴾᴴ 👋\n"
+                        "How can we help you today?\n"
+                        "Here are some quick options:"
+                    )
+                    send_text_message(sender_id, welcome_text, quick_replies=QUICK_REPLIES)
+                    continue
+
+                continue
+
+        
+            if "message" not in event:
+                continue
+
+            message = event["message"]
+
+            if "text" not in message:
+                continue
+
+            text = message["text"].lower().strip()
+
+     
+            auto_reply = get_auto_reply(text, sender_id)
+            if auto_reply:
+                send_text_message(sender_id, auto_reply, quick_replies=QUICK_REPLIES)
+                continue
 
 
-                if "message" in event:
-                    message = event["message"]
+            inv_result = search_item(text)
+  
 
-                    if "text" in message:
-                        text = message["text"].lower().strip()
-                        
+            if inv_result:  
+                send_text_message(sender_id, inv_result)
+                print(f"[INFO] Inventory reply sent to {sender_id}: {inv_result}")
+                continue
 
-                        auto_reply = get_auto_reply(text, sender_id)
-                        if auto_reply:
-                            send_text_message(sender_id, auto_reply, quick_replies=QUICK_REPLIES)
 
-                        elif sender_id in HUMAN_HANDOVER:
-                            send_text_message(sender_id, "You can continue chatting here and a real person will reply soon.")
+            if sender_id in HUMAN_HANDOVER:
+                send_text_message(sender_id,
+                    "A real person will reply soon — you can continue chatting here."
+                )
+                print(f"[INFO] Message from {sender_id} deferred to human agent.")
+                continue
 
-                        # else:
-                        #     reply = get_gpt_response(text)
-                        #     send_text_message(sender_id, reply, quick_replies=QUICK_REPLIES)
+         
+            reply = get_gpt_response(text)
+            print(f"[INFO] GPT reply: {reply}")
+            send_text_message(sender_id, reply, quick_replies=QUICK_REPLIES)
 
     return "ok", 200
+
 
 
 def get_auto_reply(message, sender_id):
