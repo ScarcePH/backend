@@ -35,13 +35,16 @@ def search_item(query):
         scorer=fuzz.token_set_ratio
     )
 
-    if score < 35:  # adjust threshold
-        return "Item not found."
+    if score < 40:  # adjust threshold
+        return None
 
     row = df.iloc[idx]
-    return {
-        "name": row["name"],
-        "size": int(row["size"]),
-        "price": int(row["price"]),
-        "score": score
-    }
+    return  (
+        "yes po available \n" 
+        +row["name"] + "\n" +  
+        f"Size: {row['size']}\n" + 
+        f"Price: {row['price']}\n" + 
+        f"Link: {row['url']}"
+    )
+      
+    
