@@ -50,7 +50,7 @@ def webhook():
 
             inv_result = search_item(chat)
 
-            if inv_result:
+            if inv_result and inv_result.get("found"):
                 reply = get_gpt_response(chat, inv_result)
                 send_text_message(sender_id, reply, quick_replies=QUICK_REPLIES)
                 continue

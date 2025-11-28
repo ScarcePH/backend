@@ -37,20 +37,15 @@ def search_item(query):
     df = fetch_inventory()
     size = extract_size(query)
 
-
     if size:
-        # Filter inventory by size
-        df_filtered = df[df['size'].astype(str) == size]
-        if df_filtered.empty:
-            return f"No items found for size {size}"
-    else:
-        df_filtered = df
+        df = df[df['size'].astype(str) == size]
+        if df.empty:
+            return {"found": False, "reason": "no_size"}
+    
+    if df.empty:
+        return {"found": False, "reason": "empty_inventory"}
 
-    names = df_filtered["name"].astype(str).tolist()
-    
-    
-    if not names:
-        return None
+    names = df["name"].astype(str).tolist()
 
     match, score, idx = process.extractOne(
         query,
@@ -58,17 +53,15 @@ def search_item(query):
         scorer=fuzz.token_set_ratio
     )
 
-
     if score < 40:
-        return None
+        return {"found": False, "reason": "low_score"}
 
-    row = df_filtered.iloc[idx]
-    return (
-        "yes po available \n" 
-        + row["name"] + "\n" +  
-        f"Size: {row['size']}\n" + 
-        f"Price: {row['price']}\n" + 
-        f"Actual Picture: {row['url']}\n"
-    )
-      
-    
+    row = df.iloc[idx]
+
+    return {
+        "found": True,
+        "name": row["name"],
+        "size": row["size"],
+        "price": row["price"],
+        "url": row["url"]
+    }
