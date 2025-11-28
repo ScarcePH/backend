@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from inventory import search_item
+from handover import set_handover, clear_handover, is_in_handover
 
 load_dotenv()
 
@@ -36,7 +37,6 @@ AUTO_REPLIES = {
     "💬 talk to human": "Got it! We'll connect you with someone from the team asap 👍 You can continue chatting here and a real person will reply shortly."
 }
 
-HUMAN_HANDOVER = set()
 
 
 
@@ -72,7 +72,7 @@ def webhook():
                 payload = event["postback"].get("payload")
 
                 if payload == "GET_STARTED":
-                    HUMAN_HANDOVER.discard(sender_id)
+                    clear_handover(sender_id)
 
                     welcome_text = (
                         "Hi there! Welcome to Scarceᴾᴴ 👋\n"
@@ -110,9 +110,8 @@ def webhook():
                 continue
 
 
-            if sender_id in HUMAN_HANDOVER:
-               
-                continue
+            if is_in_handover(sender_id):
+                return "ok", 200
 
          
             reply = get_gpt_response(text)
@@ -126,7 +125,7 @@ def get_auto_reply(message, sender_id):
     for keyword, reply in AUTO_REPLIES.items():
         if keyword in message:
             if "talk to human" in keyword:
-                HUMAN_HANDOVER.add(sender_id)
+                set_handover(sender_id) 
             return reply
     return None
 
