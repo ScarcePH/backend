@@ -1,4 +1,4 @@
-from redis_client import redis_client
+from services.redis_client import redis_client
 
 PREFIX = "handover:"
 TTL = 3600  # 1 hour
