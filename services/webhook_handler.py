@@ -8,6 +8,7 @@ from .send_text import send_text_message
 from .gpt_analysis import get_gpt_analysis
 from .user_state import get_state, set_state, reset_state
 from utils.extract_size import extract_size
+from services.machine_state.index import ask_item, stock_confirmation
 
 def webhook():
     data = request.get_json()
@@ -23,10 +24,12 @@ def webhook():
                 payload = event["postback"].get("payload")
 
                 if payload == "GET_STARTED":
+                    clear_handover(sender_id)
                     reset_state(sender_id)
                     send_text_message(
                         sender_id,
-                        "Hi! What item are you looking for today?"
+                        "Hi there! Welcome to Scarceᴾᴴ 👋\n"
+                        "How can we help you today?\n"
                     )
                     continue
 
@@ -49,61 +52,16 @@ def webhook():
                 item = analysis.get("item")
                 size = analysis.get("size")
                 draft_reply = analysis.get("reply", "Okay.")
+              
+                ask_item(sender_id, intent, item, size, draft_reply)
 
-                if not item & intent not in ["check_product", "ask_price", "ask_availability"]:
-                    send_text_message(sender_id, draft_reply)
-                    continue
-
-                if not size:
-                    set_state(sender_id, {
-                        "state": "awaiting_size",
-                        "item": item
-                    })
-                    send_text_message(sender_id, f"What size for '{item}'?")
-                    continue
-                inv = search_item(item, size)
-                if not inv.get("found"):
-                    send_text_message(sender_id, f"Sorry, we currently don't have '{item}' available in size {size}.")
-                    continue
-                set_state(sender_id, {
-                    "state": "awaiting_confirmation",
-                    "item": inv["name"],
-                    "size": inv["size"],
-                    "price": inv["price"],
-                    "url": inv["url"]
-                })
-                msg = (
-                    f"Great! We have {inv['name']} (Size {inv['size']}) for only ₱{inv['price']}.\n"
-                    f"Please check details here: {inv['url']}\n"
-                    "Would you like to reserve this pair? (Yes / No)"
-                )
-                send_text_message(sender_id, msg)
+                stock_confirmation(sender_id, item, size)
 
             if current_state == "awaiting_size":
                 item = state["item"]
                 size = extract_size(chat_lower)
 
-                inv = search_item(item, size)
-
-                if not inv.get("found"):
-                    send_text_message(sender_id, f"'{item}' in size {size} is not available. Try another size:")
-                    continue
-
-                set_state(sender_id, {
-                    "state": "awaiting_confirmation",
-                    "item": inv["name"],
-                    "size": inv["size"],
-                    "price": inv["price"],
-                    "url": inv["url"]
-                })
-
-                msg = (
-                    f"Great! We have {inv['name']} (Size {inv['size']}) for only ₱{inv['price']}.\n"
-                    f"Please check details here: {inv['url']}\n"
-                    "Would you like to reserve this pair? (Yes / No)"
-                )
-                send_text_message(sender_id, msg)
-                continue
+                stock_confirmation(sender_id, item, size)
 
             if current_state == "awaiting_confirmation":
                 if chat_lower not in ["yes", "y", "no", "n"]:
