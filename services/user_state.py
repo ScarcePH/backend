@@ -4,7 +4,7 @@ import json
 
 def get_state(user_id):
     key = f"user_state:{user_id}"
-    data = redis_client.setex(key)
+    data = redis_client.exists(key)
     if not data:
         return {"state": "idle"}
     return json.loads(data)
@@ -12,7 +12,7 @@ def get_state(user_id):
 
 def set_state(user_id, state_dict):
     key = f"user_state:{user_id}"
-    redis_client.set(key, json.dumps(state_dict))
+    redis_client.setex(key, json.dumps(state_dict))
 
 
 def reset_state(user_id):
