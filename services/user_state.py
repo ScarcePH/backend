@@ -1,4 +1,4 @@
-import utils.redis_client as redis_client
+from utils.redis_client import redis_client
 import json
 
 
