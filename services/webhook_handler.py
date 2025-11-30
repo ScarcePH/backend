@@ -7,6 +7,7 @@ from .gpt_response import get_gpt_response
 from .send_text import send_text_message
 from .gpt_analysis import get_gpt_analysis
 from .user_state import get_state, set_state, reset_state
+from utils.extract_size import extract_size
 
 def webhook():
     data = request.get_json()
@@ -46,22 +47,41 @@ def webhook():
                 analysis = get_gpt_analysis(chat_lower)
                 intent = analysis.get("intent")
                 item = analysis.get("item")
+                size = analysis.get("size")
+                draft_reply = analysis.get("reply", "Okay.")
 
-                if not item:
-                    send_text_message(sender_id, "What item are you looking for?")
+                if not item & intent not in ["check_product", "ask_price", "ask_availability"]:
+                    send_text_message(sender_id, draft_reply)
                     continue
 
+                if not size:
+                    set_state(sender_id, {
+                        "state": "awaiting_size",
+                        "item": item
+                    })
+                    send_text_message(sender_id, f"What size for '{item}'?")
+                    continue
+                inv = search_item(item, size)
+                if not inv.get("found"):
+                    send_text_message(sender_id, f"Sorry, we currently don't have '{item}' available in size {size}.")
+                    continue
                 set_state(sender_id, {
-                    "state": "awaiting_size",
-                    "item": item
+                    "state": "awaiting_confirmation",
+                    "item": inv["name"],
+                    "size": inv["size"],
+                    "price": inv["price"],
+                    "url": inv["url"]
                 })
-
-                send_text_message(sender_id, f"What size for '{item}'?")
-                continue
+                msg = (
+                    f"Great! We have {inv['name']} (Size {inv['size']}) for only ₱{inv['price']}.\n"
+                    f"Please check details here: {inv['url']}\n"
+                    "Would you like to reserve this pair? (Yes / No)"
+                )
+                send_text_message(sender_id, msg)
 
             if current_state == "awaiting_size":
                 item = state["item"]
-                size = chat_lower
+                size = extract_size(chat_lower)
 
                 inv = search_item(item, size)
 
@@ -78,7 +98,8 @@ def webhook():
                 })
 
                 msg = (
-                    f"Great! We have {inv['name']} (Size {inv['size']}) for ₱{inv['price']}.\n"
+                    f"Great! We have {inv['name']} (Size {inv['size']}) for only ₱{inv['price']}.\n"
+                    f"Please check details here: {inv['url']}\n"
                     "Would you like to reserve this pair? (Yes / No)"
                 )
                 send_text_message(sender_id, msg)
