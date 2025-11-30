@@ -19,4 +19,5 @@ def get_gpt_analysis(user_message):
     """
 
     raw = call_gpt(SYSTEM_PROMPT, user_prompt)
+    print(f"[GPT ANALYSIS RAW] {raw}")
     return json.loads(raw)

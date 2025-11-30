@@ -6,6 +6,7 @@ from services.webhook_handler import webhook
 load_dotenv()
 
 VERIFY_TOKEN = os.environ.get("VERIFY_TOKEN")
+SYSTEM_PROMPT = os.environ.get("SYSTEM_PROMPT")
 
 
 
@@ -34,6 +35,10 @@ def webhook_route():
     return webhook()
 
 
+# @app.route("/test", methods=["POST"])
+# def test_route():
+
+#     return test()
 
 if __name__ == "__main__":
     app.run(debug=True)

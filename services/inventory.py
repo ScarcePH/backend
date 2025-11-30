@@ -56,12 +56,14 @@ def search_item(item_name, size=None):
 
     matched_name, score, idx = match
     row = df.iloc[idx]
-
+    print("ROW:", row.to_dict())
+    
     return {
         "found": True,
         "name": row["name"],
-        "size": row["size"],
-        "price": row["price"],
-        "url": row["url"]
+        "size": str(row["size"]),
+        "price":str(row["price"]),
+        "url": row["url"],
+        "message": f"We have '{row['name']}' (Size: {row['size']}) \n  available for only ₱{row['price']}. \n You can check the details here: {row['url']}"
     }
 
