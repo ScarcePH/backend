@@ -4,7 +4,7 @@ import json
 
 def get_state(user_id):
     key = f"user_state:{user_id}"
-    data = redis_client.get(key)
+    data = redis_client.setex(key)
     if not data:
         return {"state": "idle"}
     return json.loads(data)
