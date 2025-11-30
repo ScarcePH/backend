@@ -33,29 +33,28 @@ def extract_size(query):
         return match.group(0)
     return None
 
-def search_item(query):
+def search_item(item_name, size=None):
     df = fetch_inventory()
-    size = extract_size(query)
 
+    # Filter by size if provided
     if size:
-        df = df[df['size'].astype(str) == size]
+        df = df[df["size"].astype(str) == str(size)]
         if df.empty:
             return {"found": False, "reason": "no_size"}
-    
-    if df.empty:
-        return {"found": False, "reason": "empty_inventory"}
 
+    # Fuzzy match product name
     names = df["name"].astype(str).tolist()
 
-    match, score, idx = process.extractOne(
-        query,
+    match = process.extractOne(
+        item_name,
         names,
         scorer=fuzz.token_set_ratio
     )
 
-    if score < 40:
+    if not match or match[1] < 40:
         return {"found": False, "reason": "low_score"}
 
+    matched_name, score, idx = match
     row = df.iloc[idx]
 
     return {
@@ -65,3 +64,4 @@ def search_item(query):
         "price": row["price"],
         "url": row["url"]
     }
+
