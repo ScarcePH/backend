@@ -43,10 +43,11 @@ def search_item(item_name, size=None):
             return {"found": False, "reason": "no_size"}
 
     # Fuzzy match product name
-    names = df["name"].astype(str).tolist()
+    names = df["name"].astype(str).str.lower().tolist()
+    
 
     match = process.extractOne(
-        item_name,
+        item_name.lower(),
         names,
         scorer=fuzz.token_set_ratio
     )
