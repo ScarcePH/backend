@@ -49,31 +49,31 @@ def webhook():
                 send_text_message(sender_id, auto_reply, quick_replies=QUICK_REPLIES)
                 continue
 
-            analysis = get_gpt_analysis(chat)
+            # analysis = get_gpt_analysis(chat)
 
             
-            intent = analysis.get("intent")
-            item = analysis.get("item", "")
-            size = analysis.get("size", "")
-            draft_reply = analysis.get("reply", "Okay.")
+            # intent = analysis.get("intent")
+            # item = analysis.get("item", "")
+            # size = analysis.get("size", "")
+            # draft_reply = analysis.get("reply", "Okay.")
 
-            if intent == "handover":
-                send_text_message(sender_id, "Okay, a human agent will assist you shortly. 👤")
-                set_handover(sender_id)
-                continue
+            # if intent == "handover":
+            #     send_text_message(sender_id, "Okay, a human agent will assist you shortly. 👤")
+            #     set_handover(sender_id)
+            #     continue
 
-            if intent in ["check_product", "ask_price", "ask_availability"]:
-                inv = search_item(item, size)
+            # if intent in ["check_product", "ask_price", "ask_availability"]:
+            #     inv = search_item(item, size)
 
-                if inv.get("found"):
-                    final_reply = inv.get("message")
-                else:
-                    final_reply = f"Sorry, we currently don't have '{item}' available."
+            #     if inv.get("found"):
+            #         final_reply = inv.get("message")
+            #     else:
+            #         final_reply = f"Sorry, we currently don't have '{item}' available."
 
-                send_text_message(sender_id, final_reply, quick_replies=QUICK_REPLIES)
-                continue
+            #     send_text_message(sender_id, final_reply, quick_replies=QUICK_REPLIES)
+            #     continue
 
-            send_text_message(sender_id, draft_reply, quick_replies=QUICK_REPLIES)
+            # send_text_message(sender_id, draft_reply, quick_replies=QUICK_REPLIES)
 
     return "ok", 200
 
