@@ -1,11 +1,14 @@
 from flask import request
 from .inventory import search_item
-from .handover import set_handover, clear_handover, is_in_handover
+from  states.handover import set_handover, clear_handover, is_in_handover
 from .quick_replies import QUICK_REPLIES
 from .auto_reply import get_auto_reply
 from .gpt_response import get_gpt_response
 from .send_text import send_text_message
 from .gpt_analysis import get_gpt_analysis
+from states.user_state import get_state, set_state, reset_state
+from utils.extract_size import extract_size
+from services.machine_state.index import ask_item, stock_confirmation
 
 def webhook():
     data = request.get_json()
@@ -22,82 +25,175 @@ def webhook():
 
                 if payload == "GET_STARTED":
                     clear_handover(sender_id)
-                    welcome_text = (
+                    reset_state(sender_id)
+                    send_text_message(
+                        sender_id,
                         "Hi there! Welcome to Scarceᴾᴴ 👋\n"
-                        "How can we help you today?\n"
-                        "Here are some quick options:"
+                        "How can we help you today?\n",
+                        QUICK_REPLIES
                     )
-                    send_text_message(sender_id, welcome_text, quick_replies=QUICK_REPLIES)
                     continue
-                continue
 
             if is_in_handover(sender_id):
+                print(f"[HANDOVER] Message from {sender_id} ignored due to handover.")
+                # clear_handover(sender_id)
                 return "ok", 200
 
-            if "message" not in event:
+            if "message" not in event or "text" not in event["message"]:
                 continue
 
-            message = event["message"]
+            chat = event["message"]["text"].strip()
+            chat_lower = chat.lower()   
 
-            if "text" not in message:
-                continue
-
-            chat = message["text"].lower().strip()
-
-            auto_reply = get_auto_reply(chat, sender_id)
+            auto_reply = get_auto_reply(chat_lower, sender_id)
             if auto_reply:
                 send_text_message(sender_id, auto_reply, quick_replies=QUICK_REPLIES)
                 continue
 
-            analysis = get_gpt_analysis(chat)
+            state = get_state(sender_id)
+            current_state = state.get("state")
 
-            
-            intent = analysis.get("intent")
-            item = analysis.get("item", "")
-            size = analysis.get("size", "")
-            draft_reply = analysis.get("reply", "Okay.")
 
-            if intent == "handover":
-                send_text_message(sender_id, "Okay, a human agent will assist you shortly. 👤")
-                set_handover(sender_id)
+            if current_state == "idle":
+                analysis = get_gpt_analysis(chat_lower)
+                intent = analysis.get("intent")
+                item = analysis.get("item")
+                size = analysis.get("size")
+                draft_reply = analysis.get("reply", "Okay.")
+
+                if item and size:
+                    ask_item(sender_id, intent, item, size, draft_reply)
+                    stock = stock_confirmation(sender_id, item, size)+"\n Scarceᴾᴴ Bot"
+                   
+                    send_text_message(sender_id, stock, quick_replies=QUICK_REPLIES)
+                    continue
+
+                inquire = ask_item(sender_id, intent, item, size, draft_reply)+"\n Scarceᴾᴴ Bot"
+                send_text_message(sender_id, inquire, quick_replies=QUICK_REPLIES)
                 continue
 
-            if intent in ["check_product", "ask_price", "ask_availability"] and item:
-                inv = search_item(item, size)
+            if current_state == "awaiting_size":
+                item = state["item"]
+                size = extract_size(chat_lower)
+                stock = stock_confirmation(sender_id, item, size)+"\n Scarceᴾᴴ Bot"
+                send_text_message(sender_id, stock, quick_replies=QUICK_REPLIES)
+                continue
+                
 
-                if inv.get("found"):
-                    final_reply = inv.get("message")
-                else:
-                    final_reply = f"Sorry, we currently don't have '{item}' available."
+            if current_state == "awaiting_confirmation":
+                if chat_lower not in ["yes", "y", "no", "n"]:
+                    item = state["item"]
+                    size = state["size"]
+                    msg = (
+                        f"Please reply with 'Yes' or 'No'.\n"
+                        f"Do you want to reserve '{item}' (Size {size}us)? \n Scarceᴾᴴ Bot "
+                    )
+                    send_text_message(sender_id, msg, quick_replies=QUICK_REPLIES)
+                    continue
 
-                send_text_message(sender_id, final_reply, quick_replies=QUICK_REPLIES)
+                if chat_lower in ["no", "n"]:
+                    reset_state(sender_id)
+                    msg = "No worries! Let me know if you want to check another item. "
+                    send_text_message(sender_id, msg, quick_replies=QUICK_REPLIES)
+                    continue
+
+                set_state(sender_id, {
+                    **state,
+                    "state": "awaiting_customer_name"
+                })
+                send_text_message(sender_id, "Great! Please provide your full name:  ")
                 continue
 
-            send_text_message(sender_id, draft_reply, quick_replies=QUICK_REPLIES)
+            if current_state == "awaiting_customer_name":
+                name = chat.strip()
 
+                set_state(sender_id, {
+                    **state,
+                    "state": "awaiting_customer_address",
+                    "customer_name": name
+                })
+                msg = f"Thanks, {name}! Can I have your delivery address next? "
+                send_text_message(sender_id, msg)
+                continue
+
+            if current_state == "awaiting_customer_address":
+                address = chat.strip()
+
+                set_state(sender_id, {
+                    **state,
+                    "state": "awaiting_customer_phone",
+                    "customer_address": address
+                })
+                msg = "Thanks! Lastly, what’s your phone number?."
+                send_text_message(sender_id, msg)
+                continue
+
+            if current_state == "awaiting_customer_phone":
+                phone = chat.strip()
+
+                order = {
+                    "item": state["item"],
+                    "size": state["size"],
+                    "price": state["price"],
+                    "customer_name": state["customer_name"],
+                    "customer_phone": phone,
+                    'customer_address': state["customer_address"],
+                    "url": state["url"]
+                }
+
+                reset_state(sender_id)
+
+                confirmation = (
+                    f"All set!\n\n"
+                    f"🛒 **Order Reserved**\n"
+                    f"Item: {order['item']}\n"
+                    f"Size: {order['size']}\n"
+                    f"Price: ₱{order['price']}\n"
+                    f"Name: {order['customer_name']}\n"
+                    f"Phone: {order['customer_phone']}\n\n"
+                    f"Address: {order['customer_address']}\n\n"
+                    f"We’ll contact you shortly. You can also view the item here:\n{order['url']} \n Scarceᴾᴴ Bot "
+                )
+                send_text_message(sender_id, confirmation, quick_replies=QUICK_REPLIES)
+                continue
+
+      
+            msg = "I didn’t catch that. What item are you looking for? \n Scarceᴾᴴ Bot "
+            send_text_message(sender_id, msg, quick_replies=QUICK_REPLIES)
+    
     return "ok", 200
 
 
-# def test():
-#     data = request.get_json()
-#     chat = data.get("chat")
-#     analysis = get_gpt_analysis(chat)
-       
-#     intent = analysis.get("intent")
-#     item = analysis.get("item", "")
-#     size = analysis.get("size", "")
-#     draft_reply = analysis.get("reply", "Okay.")
+def test():
+    data = request.get_json()
+    chat = data.get("chat")
+    sender_id = data.get("sender_id")
+    chat_lower = chat.lower()
 
-    if intent == "handover":
-        return "Handover intent detected.", 200
-        # set_handover(sender_id)
+    state = get_state(sender_id)
+    current_state = state.get("state")
+
+    # reset_state(sender_id)
+    # return "State reset", 200
+    if current_state == "idle":
+        analysis = get_gpt_analysis(chat_lower)
+        intent = analysis.get("intent")
+        item = analysis.get("item")
+        size = analysis.get("size")
+        draft_reply = analysis.get("reply", "Okay.")
         
+       
+        if item and size:
+            ask_item(sender_id, intent, item, size, draft_reply)
+            return stock_confirmation(sender_id, item, size)
+       
+        return ask_item(sender_id, intent, item, size, draft_reply)
 
-    if intent in ["check_product", "ask_price", "ask_availability"] and item:
-        inv = search_item(item, size)
-        if inv.get("found"):
-            final_reply = inv.get("message")
-        else:
-            final_reply = f"Sorry, we currently don't have '{item}' available."
+    if current_state == "awaiting_size":
+        item = state["item"]
+        
+        size = extract_size(chat_lower)
 
-#         return final_reply
+        return stock_confirmation(sender_id, item, size)
+
+    return "okiee po", 200
