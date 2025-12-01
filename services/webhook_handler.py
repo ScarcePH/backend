@@ -93,7 +93,7 @@ def webhook():
 
                 if chat_lower in ["no", "n"]:
                     reset_state(sender_id)
-                    msg = "No worries! Let me know if you want to check another item. ", 200
+                    msg = "No worries! Let me know if you want to check another item. "
                     send_text_message(sender_id, msg, quick_replies=QUICK_REPLIES)
                     continue
 
@@ -112,8 +112,8 @@ def webhook():
                     "state": "awaiting_customer_address",
                     "customer_name": name
                 })
-                msg = f"Thanks, {name}! Can I have your delivery address next? ", 200
-                send_text_message(sender_id, msg, quick_replies=QUICK_REPLIES)
+                msg = f"Thanks, {name}! Can I have your delivery address next? "
+                send_text_message(sender_id, msg)
                 continue
 
             if current_state == "awaiting_customer_address":
@@ -124,8 +124,8 @@ def webhook():
                     "state": "awaiting_customer_phone",
                     "customer_address": address
                 })
-                msg = "Thanks! Lastly, what’s your phone number?. \n Scarceᴾᴴ Bot ", 200
-                send_text_message(sender_id, msg, quick_replies=QUICK_REPLIES)
+                msg = "Thanks! Lastly, what’s your phone number?."
+                send_text_message(sender_id, msg)
                 continue
 
             if current_state == "awaiting_customer_phone":
@@ -158,7 +158,7 @@ def webhook():
                 continue
 
       
-            msg = "I didn’t catch that. What item are you looking for? \n Scarceᴾᴴ Bot ", 200
+            msg = "I didn’t catch that. What item are you looking for? \n Scarceᴾᴴ Bot "
             send_text_message(sender_id, msg, quick_replies=QUICK_REPLIES)
     
     return "ok", 200
