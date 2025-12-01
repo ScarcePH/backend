@@ -1,4 +1,4 @@
-from services.handover import set_handover
+from states.handover import set_handover
 from .quick_replies import AUTO_REPLIES
 
 def get_auto_reply(message, sender_id):

@@ -1,5 +1,5 @@
 import json
-from utils.redis_client import redis_client
+from utils.redis_client import redis_client,redis_local
 
 
 DEFAULT_STATE = {"state": "idle"}

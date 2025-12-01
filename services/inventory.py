@@ -37,33 +37,46 @@ def search_item(item_name, size=None):
     df = fetch_inventory()
 
     # Filter by size if provided
-    if size:
-        df = df[df["size"].astype(str) == str(size)]
-        if df.empty:
-            return {"found": False, "reason": "no_size"}
+    # if size:
+    #     df = df[df["size"].astype(str) == str(size)]
+    #     if df.empty:
+    #         return {"found": False, "reason": "no_size"}
 
     # Fuzzy match product name
-    names = df["name"].astype(str).tolist()
+    names = df["name"].astype(str).str.lower().tolist()
 
     match = process.extractOne(
-        item_name,
+        item_name.lower(),
         names,
         scorer=fuzz.token_set_ratio
     )
 
-    if not match or match[1] < 40:
+    print("[MATCH]:", match)
+
+    if not match or match[1] < 45:
         return {"found": False, "reason": "low_score"}
 
     matched_name, score, idx = match
     row = df.iloc[idx]
     print("ROW:", row.to_dict())
-    
+
+    if size and str(row["size"]) != str(size):
+        return {"found": False, "reason": "size_mismatch", "name": row["name"]}
     return {
         "found": True,
         "name": row["name"],
-        "size": str(row["size"]),
+        "size": str(row["size"])+"us",
         "price":str(row["price"]),
         "url": row["url"],
         "message": f"We have '{row['name']}' (Size: {row['size']}) \n  available for only ₱{row['price']}. \n You can check the details here: {row['url']}"
     }
+
+def get_item_sizes(size,item):
+    df = fetch_inventory()
+    df_filtered = df[df["size"].astype(str) == str(size)]
+    if df_filtered.empty:
+        return []
+    available_in_size = df_filtered["name"].astype(str).tolist()
+    formatted_list = ", ".join(f"'{name}'" for name in available_in_size)
+    return f"We don't have '{item}' in size {size}us. However, we do have the following items available in size {size}us: {formatted_list}."
 
