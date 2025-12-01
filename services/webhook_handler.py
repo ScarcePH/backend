@@ -45,7 +45,7 @@ def webhook():
             chat = event["message"]["text"].strip()
             chat_lower = chat.lower()   
 
-            auto_reply = get_auto_reply(chat, sender_id)
+            auto_reply = get_auto_reply(chat_lower, sender_id)
             if auto_reply:
                 send_text_message(sender_id, auto_reply, quick_replies=QUICK_REPLIES)
                 continue
