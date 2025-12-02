@@ -33,12 +33,7 @@ def webhook():
                         QUICK_REPLIES
                     )
                     continue
-
-            if is_in_handover(sender_id):
-                print(f"[HANDOVER] Message from {sender_id} ignored.")
-                # clear_handover(sender_id)
-                return "ok", 200
-            
+                
             if "take_thread_control" in event:
                 # Human agent took over
                 set_handover(sender_id)
@@ -49,6 +44,11 @@ def webhook():
                 # Bot was returned control
                 clear_handover(sender_id)
                 print(f"[HANDOVER] Bot regained control for {sender_id}")
+                return "ok", 200
+            
+            if is_in_handover(sender_id):
+                print(f"[HANDOVER] Message from {sender_id} ignored.")
+                # clear_handover(sender_id)
                 return "ok", 200
             
 
