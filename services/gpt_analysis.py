@@ -73,8 +73,6 @@ def get_gpt_analysis(user_message):
         }}
     """
 
-    print(f"[GPT ANALYSIS PROMPT] {user_prompt}")
-    print(f"[SYSTEM PROMPT] {SYSTEM_PROMPT_ANALYSIS}")
     raw = call_gpt(SYSTEM_PROMPT_ANALYSIS, user_prompt)
     print(f"[GPT ANALYSIS RAW] {raw}")
 

@@ -33,17 +33,27 @@ def webhook():
                         QUICK_REPLIES
                     )
                     continue
-                
+
+            if "standby" in entry:
+                print("[STANDBY] Event received while in Human Mode")
+                continue
+
             if "take_thread_control" in event:
                 # Human agent took over
                 set_handover(sender_id)
-                print(f"[HANDOVER] Human agent took over {sender_id}")
+                print(f"[take_thread_control]: Human agent took over {sender_id}")
                 return "ok", 200
 
             if "pass_thread_control" in event:
                 # Bot was returned control
                 clear_handover(sender_id)
-                print(f"[HANDOVER] Bot regained control for {sender_id}")
+                print(f"[pass_thread_control]: Bot regained control for {sender_id}")
+                return "ok", 200
+            
+            if "message" in event and event["message"].get("is_echo"):
+                print(f"[ECHO] Message sent by Page Admin to {sender_id}")
+                # Optional: You can trigger set_handover(sender_id) here if you want 
+                # the bot to shut up automatically the moment a human types.
                 return "ok", 200
             
             if is_in_handover(sender_id):
@@ -177,36 +187,3 @@ def webhook():
     return "ok", 200
 
 
-def test():
-    data = request.get_json()
-    chat = data.get("chat")
-    sender_id = data.get("sender_id")
-    chat_lower = chat.lower()
-
-    state = get_state(sender_id)
-    current_state = state.get("state")
-
-    # reset_state(sender_id)
-    # return "State reset", 200
-    if current_state == "idle":
-        analysis = get_gpt_analysis(chat_lower)
-        intent = analysis.get("intent")
-        item = analysis.get("item")
-        size = analysis.get("size")
-        draft_reply = analysis.get("reply", "Okay.")
-        
-       
-        if item and size:
-            ask_item(sender_id, intent, item, size, draft_reply)
-            return stock_confirmation(sender_id, item, size)
-       
-        return ask_item(sender_id, intent, item, size, draft_reply)
-
-    if current_state == "awaiting_size":
-        item = state["item"]
-        
-        size = extract_size(chat_lower)
-
-        return stock_confirmation(sender_id, item, size)
-
-    return "okiee po", 200
