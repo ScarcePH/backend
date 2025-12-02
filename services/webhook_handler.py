@@ -93,7 +93,8 @@ def webhook():
                     continue
 
                 inquire = ask_item(sender_id, intent, item, size, draft_reply)+"\n Scarceᴾᴴ Bot"
-                send_text_message(sender_id, inquire, quick_replies=QUICK_REPLIES)
+                return "ok", 200
+                # send_text_message(sender_id, inquire, quick_replies=QUICK_REPLIES)
                 continue
 
             if current_state == "awaiting_size":
