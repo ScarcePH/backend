@@ -17,6 +17,9 @@ def webhook():
         return "ignored", 200
 
     for entry in data.get("entry", []):
+        if "standby" in entry:
+            print("[STANDBY] Event received while in Human Mode")
+            continue
         for event in entry.get("messaging", []):
             sender_id = event["sender"]["id"]
 
@@ -34,9 +37,7 @@ def webhook():
                     )
                     continue
 
-            if "standby" in entry:
-                print("[STANDBY] Event received while in Human Mode")
-                continue
+           
 
             if "take_thread_control" in event:
                 # Human agent took over
