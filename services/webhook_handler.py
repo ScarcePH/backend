@@ -35,9 +35,22 @@ def webhook():
                     continue
 
             if is_in_handover(sender_id):
-                print(f"[HANDOVER] Message from {sender_id} ignored due to handover.")
+                print(f"[HANDOVER] Message from {sender_id} ignored.")
                 # clear_handover(sender_id)
                 return "ok", 200
+            
+            if "take_thread_control" in event:
+                # Human agent took over
+                set_handover(sender_id)
+                print(f"[HANDOVER] Human agent took over {sender_id}")
+                return "ok", 200
+
+            if "pass_thread_control" in event:
+                # Bot was returned control
+                clear_handover(sender_id)
+                print(f"[HANDOVER] Bot regained control for {sender_id}")
+                return "ok", 200
+            
 
             if "message" not in event or "text" not in event["message"]:
                 continue
