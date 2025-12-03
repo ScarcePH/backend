@@ -42,6 +42,7 @@ def webhook():
                 user_psid = event["recipient"]["id"]
                 print(f"[ECHO] Message echo received for {user_psid}")
                 set_handover(user_psid)
+                clear_handover(sender_id)
                 return "ok", 200
         
             
