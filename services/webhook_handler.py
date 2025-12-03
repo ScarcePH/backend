@@ -17,7 +17,6 @@ def webhook():
         return "ignored", 200
 
     for entry in data.get("entry", []):
-        print(f"[WEBHOOK] Entry: {entry}")
         for event in entry.get("messaging", []):
             sender_id = event["sender"]["id"]
 
@@ -34,20 +33,21 @@ def webhook():
                         QUICK_REPLIES
                     )
                     continue
+                
             if is_in_handover(sender_id):
                 print(f"[HANDOVER] Message from {sender_id} ")
                 return "ok", 200
             
             if event["message"].get("is_echo"):
-                print(f"[ECHO] Message echo received for {sender_id}")
-                set_handover(sender_id)
+                user_psid = event["recipient"]["id"]
+                print(f"[ECHO] Message echo received for {user_psid}")
+                set_handover(user_psid)
                 return "ok", 200
         
             
             if "message" not in event or "text" not in event["message"]:
                 continue
-            print(f"[MESSAGE] Message will be handled by bot for {sender_id} ")
-            return 'ok', 200
+  
 
             chat = event["message"]["text"].strip()
             chat_lower = chat.lower()   
