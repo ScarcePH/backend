@@ -153,7 +153,7 @@ def handle_message(sender_id, chat):
 
     handler = STATE_HANDLERS.get(current_state)
     if handler:
-        handler(sender_id, chat, state)
+        handler(sender_id, chat_lower, state)
     else:
         # Fallback for unknown state
         msg = "I didn't catch that. What item are you looking for? \n Scarceᴾᴴ Bot"
