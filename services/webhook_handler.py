@@ -51,11 +51,9 @@ def webhook():
                 print(f"[pass_thread_control]: Bot regained control for {sender_id}")
                 return "ok", 200
             
-            if "message" in event and event["message"].get("is_echo"):
-                print(f"[ECHO] Message sent by Page Admin to {sender_id}")
-                # Optional: You can trigger set_handover(sender_id) here if you want 
-                # the bot to shut up automatically the moment a human types.
-                return "ok", 200
+            if event["message"].get("is_echo"):
+                print(f"[ECHO] Message echo received for {sender_id}")
+                set_handover(sender_id)
             
             if is_in_handover(sender_id):
                 print(f"[HANDOVER] Message from {sender_id} ignored.")
