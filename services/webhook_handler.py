@@ -48,6 +48,7 @@ def webhook():
             
             if "message" not in event or "text" not in event["message"]:
                 continue
+            print(f"[MESSAGE] Message will be handled by bot for {sender_id} ")
             return 'ok', 200
 
             chat = event["message"]["text"].strip()
