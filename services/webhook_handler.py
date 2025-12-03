@@ -17,6 +17,11 @@ def webhook():
             print(f"[EVENT]: {event}")
             sender_id = event["sender"]["id"]
 
+            if "postback" in event:
+                payload = event["postback"].get("payload")
+                handle_postback(sender_id, payload)
+                return "ok", 200
+
             if is_in_handover(sender_id):
                 print(f"[HANDOVER] Message from {sender_id} Handover to Admin")
                 return "ok", 200
@@ -32,11 +37,6 @@ def webhook():
                 return "ok",200
             
             if not is_echo:
-                
-                if "postback" in event:
-                    payload = event["postback"].get("payload")
-                    handle_postback(sender_id, payload)
-                    return "ok", 200
 
                 if "message" in event and "text" in event["message"]:
                     chat = event["message"]["text"].strip()
