@@ -23,19 +23,20 @@ def webhook():
             # SET HUMAN REPLY ONLY WHEN CHATING WITH USER
             if event.get("message", {}).get("is_echo"):
                 user_psid = event["recipient"]["id"]
-                print(f"[ECHO] Message echo received for {user_psid}")
+                print(f"[ECHO] ADMIN MESSAGE BOT MUST STOP")
                 set_handover(user_psid)
-                continue
+                return "ok",200
 
             # HUMAN REPLIES 
             if is_in_handover(sender_id):
-                print(f"[HANDOVER] Message from {sender_id}")
+                print(f"[HANDOVER] Message from {sender_id} Handover to Admin")
                 return "ok", 200
 
             # BOT RECEIVING MESSAGES 
             if "message" in event and "text" in event["message"]:
                 chat = event["message"]["text"].strip()
                 handle_message(sender_id, chat)
-                continue
+                print("BOT REPLIED")
+                return 'ok', 200
 
     return "ok", 200
