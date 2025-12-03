@@ -14,12 +14,6 @@ def webhook():
             print(f"[EVENT]: {event}")
             sender_id = event["sender"]["id"]
 
-            # GET STARTED
-            if "postback" in event:
-                payload = event["postback"].get("payload")
-                handle_postback(sender_id, payload)
-                continue
-
             # SET HUMAN REPLY ONLY WHEN CHATING WITH USER
             if event.get("message", {}).get("is_echo"):
                 user_psid = event["recipient"]["id"]
@@ -31,6 +25,12 @@ def webhook():
             if is_in_handover(sender_id):
                 print(f"[HANDOVER] Message from {sender_id} Handover to Admin")
                 return "ok", 200
+            
+              # GET STARTED
+            if "postback" in event:
+                payload = event["postback"].get("payload")
+                handle_postback(sender_id, payload)
+                return 'ok', 200
 
             # BOT RECEIVING MESSAGES 
             if "message" in event and "text" in event["message"]:
