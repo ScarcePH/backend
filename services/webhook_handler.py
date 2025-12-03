@@ -37,30 +37,17 @@ def webhook():
                     )
                     continue
 
-            print("RAW MESSAGE EVENT:", event)
-
-            if "take_thread_control" in event:
-                # Human agent took over
-                set_handover(sender_id)
-                print(f"[take_thread_control]: Human agent took over {sender_id}")
-                return "ok", 200
-
-            if "pass_thread_control" in event:
-                # Bot was returned control
-                clear_handover(sender_id)
-                print(f"[pass_thread_control]: Bot regained control for {sender_id}")
-                return "ok", 200
             
             if event["message"].get("is_echo"):
                 print(f"[ECHO] Message echo received for {sender_id}")
                 set_handover(sender_id)
+                return "ok", 200
             
             if is_in_handover(sender_id):
                 print(f"[HANDOVER] Message from {sender_id} ignored.")
                 # clear_handover(sender_id)
                 return "ok", 200
             
-
             if "message" not in event or "text" not in event["message"]:
                 continue
 
@@ -75,7 +62,6 @@ def webhook():
             state = get_state(sender_id)
             current_state = state.get("state")
 
-            return "ok", 200
             if current_state == "idle":
                 analysis = get_gpt_analysis(chat_lower)
                 intent = analysis.get("intent")
@@ -92,7 +78,7 @@ def webhook():
 
                 inquire = ask_item(sender_id, intent, item, size, draft_reply)+"\n Scarceᴾᴴ Bot"
                 
-                # send_text_message(sender_id, inquire, quick_replies=QUICK_REPLIES)
+                send_text_message(sender_id, inquire, quick_replies=QUICK_REPLIES)
                 continue
 
             if current_state == "awaiting_size":
