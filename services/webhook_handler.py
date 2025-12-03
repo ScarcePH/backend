@@ -17,28 +17,31 @@ def webhook():
             print(f"[EVENT]: {event}")
             sender_id = event["sender"]["id"]
 
-            is_echo = event.get("message", {}).get("is_echo")
-            app_id = str(event.get("message", {}).get("app_id"))
-            
-            if  is_echo and app_id != BOT_APP_ID:
-                user_psid = event["recipient"]["id"]
-                print(f"[ECHO] ADMIN MESSAGE THE USER BOT MUST STOP")
-                set_handover(user_psid)
-                return "ok",200
-
             if is_in_handover(sender_id):
                 print(f"[HANDOVER] Message from {sender_id} Handover to Admin")
                 return "ok", 200
-            
-            if "postback" in event:
-                payload = event["postback"].get("payload")
-                handle_postback(sender_id, payload)
-                continue
 
-            if "message" in event and "text" in event["message"] and not is_echo:
-                chat = event["message"]["text"].strip()
-                handle_message(sender_id, chat)
-                print("BOT REPLIED")
-                continue
+             ## ECHO IS ACITVATED TO CAPTURE ADMIN OWN MESSAGE TO SHUTUP BOT
+            is_echo = event.get("message", {}).get("is_echo")
+            app_id = str(event.get("message", {}).get("app_id"))
+            
+            if is_echo and app_id != BOT_APP_ID:
+                user_psid = event["recipient"]["id"]
+                print(f"[ECHO] ADMIN REPLIES THE CHAT")
+                set_handover(user_psid)
+                return "ok",200
+            
+            if not is_echo:
+                
+                if "postback" in event:
+                    payload = event["postback"].get("payload")
+                    handle_postback(sender_id, payload)
+                    return "ok", 200
+
+                if "message" in event and "text" in event["message"]:
+                    chat = event["message"]["text"].strip()
+                    handle_message(sender_id, chat)
+                    print("BOT REPLIED")
+                    return "ok", 200
 
     return "ok", 200

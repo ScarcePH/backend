@@ -21,8 +21,8 @@ def handle_postback(sender_id, payload):
         return
 
 
-def handle_idle_state(sender_id, chat, chat_lower):
-    analysis = get_gpt_analysis(chat_lower)
+def handle_idle_state(sender_id, chat, state):
+    analysis = get_gpt_analysis(chat)
     intent = analysis.get("intent")
     item = analysis.get("item")
     size = analysis.get("size")
