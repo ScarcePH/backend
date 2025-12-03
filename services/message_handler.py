@@ -3,7 +3,7 @@ from .auto_reply import get_auto_reply
 from .gpt_analysis import get_gpt_analysis
 from .send_text import send_text_message
 from states.user_state import get_state, set_state, reset_state
-from states.handover import clear_handover
+from states.handover import clear_handover,set_handover
 from utils.extract_size import extract_size
 from services.machine_state.index import ask_item, stock_confirmation
 
@@ -27,6 +27,9 @@ def handle_idle_state(sender_id, chat, state):
     item = analysis.get("item")
     size = analysis.get("size")
     draft_reply = analysis.get("reply", "Okay.")
+    if intent == 'handover':
+        set_handover(sender_id)
+        return
 
     if item and size:
         ask_item(sender_id, intent, item, size, draft_reply)
