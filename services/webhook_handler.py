@@ -33,12 +33,12 @@ def webhook():
             if "postback" in event:
                 payload = event["postback"].get("payload")
                 handle_postback(sender_id, payload)
-                return 'ok', 200
+                continue
 
             if "message" in event and "text" in event["message"]:
                 chat = event["message"]["text"].strip()
                 handle_message(sender_id, chat)
                 print("BOT REPLIED")
-                return 'ok', 200
+                continue
 
     return "ok", 200
