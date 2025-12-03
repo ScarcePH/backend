@@ -77,7 +77,7 @@ def webhook():
             state = get_state(sender_id)
             current_state = state.get("state")
 
-
+            return "ok", 200
             if current_state == "idle":
                 analysis = get_gpt_analysis(chat_lower)
                 intent = analysis.get("intent")
@@ -93,7 +93,7 @@ def webhook():
                     continue
 
                 inquire = ask_item(sender_id, intent, item, size, draft_reply)+"\n Scarceᴾᴴ Bot"
-                return "ok", 200
+                
                 # send_text_message(sender_id, inquire, quick_replies=QUICK_REPLIES)
                 continue
 
