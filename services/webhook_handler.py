@@ -1,6 +1,9 @@
 from flask import request
 from .message_handler import handle_postback, handle_message
 from states.handover import set_handover, is_in_handover
+import os
+
+BOT_APP_ID = str(os.environ.get("BOT_APP_ID"))
 
 
 def webhook():
@@ -14,25 +17,24 @@ def webhook():
             print(f"[EVENT]: {event}")
             sender_id = event["sender"]["id"]
 
-            # SET HUMAN REPLY ONLY WHEN CHATING WITH USER
-            if event.get("message", {}).get("is_echo"):
+            is_echo = event.get("message", {}).get("is_echo")
+            app_id = str(event.get("message", {}).get("app_id"))
+            
+            if  is_echo and app_id != BOT_APP_ID:
                 user_psid = event["recipient"]["id"]
-                print(f"[ECHO] ADMIN MESSAGE BOT MUST STOP")
+                print(f"[ECHO] ADMIN MESSAGE THE USER BOT MUST STOP")
                 set_handover(user_psid)
                 return "ok",200
 
-            # HUMAN REPLIES 
             if is_in_handover(sender_id):
                 print(f"[HANDOVER] Message from {sender_id} Handover to Admin")
                 return "ok", 200
             
-              # GET STARTED
             if "postback" in event:
                 payload = event["postback"].get("payload")
                 handle_postback(sender_id, payload)
                 return 'ok', 200
 
-            # BOT RECEIVING MESSAGES 
             if "message" in event and "text" in event["message"]:
                 chat = event["message"]["text"].strip()
                 handle_message(sender_id, chat)
