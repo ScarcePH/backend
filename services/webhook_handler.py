@@ -17,9 +17,7 @@ def webhook():
         return "ignored", 200
 
     for entry in data.get("entry", []):
-        if "standby" in entry:
-            print("[STANDBY] Event received while in Human Mode")
-            continue
+        print(f"[WEBHOOK] Entry: {entry}")
         for event in entry.get("messaging", []):
             sender_id = event["sender"]["id"]
 
