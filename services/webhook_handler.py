@@ -36,17 +36,15 @@ def webhook():
                         QUICK_REPLIES
                     )
                     continue
-
+            if is_in_handover(sender_id):
+                print(f"[HANDOVER] Message from {sender_id} ")
+                return "ok", 200
             
             if event["message"].get("is_echo"):
                 print(f"[ECHO] Message echo received for {sender_id}")
                 set_handover(sender_id)
                 return "ok", 200
-            
-            if is_in_handover(sender_id):
-                print(f"[HANDOVER] Message from {sender_id} ignored.")
-                # clear_handover(sender_id)
-                return "ok", 200
+        
             
             if "message" not in event or "text" not in event["message"]:
                 continue
