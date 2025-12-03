@@ -24,4 +24,4 @@ def send_text_message(recipient_id, message_text, quick_replies=None):
 
     response = requests.post(url, json=payload)
     if response.status_code != 200:
-        print(f"[ERROR] Message send failed: {response.text}")
+        print(f"[ERROR] Message send failed: {response.text}. [RECIPIENT_ID]:{recipient_id}")
