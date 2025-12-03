@@ -35,7 +35,7 @@ def webhook():
                 handle_postback(sender_id, payload)
                 continue
 
-            if "message" in event and "text" in event["message"]:
+            if "message" in event and "text" in event["message"] and not is_echo:
                 chat = event["message"]["text"].strip()
                 handle_message(sender_id, chat)
                 print("BOT REPLIED")

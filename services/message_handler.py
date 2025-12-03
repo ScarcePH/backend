@@ -9,7 +9,6 @@ from services.machine_state.index import ask_item, stock_confirmation
 
 
 def handle_postback(sender_id, payload):
-    """Handle postback events (buttons, get started)"""
     if payload == "GET_STARTED":
         clear_handover(sender_id)
         reset_state(sender_id)
@@ -19,10 +18,10 @@ def handle_postback(sender_id, payload):
             "How can we help you today?\n",
             QUICK_REPLIES
         )
+        return
 
 
 def handle_idle_state(sender_id, chat, chat_lower):
-    """Handle user message when in idle state"""
     analysis = get_gpt_analysis(chat_lower)
     intent = analysis.get("intent")
     item = analysis.get("item")
@@ -37,18 +36,18 @@ def handle_idle_state(sender_id, chat, chat_lower):
 
     inquire = ask_item(sender_id, intent, item, size, draft_reply) + "\n Scarceᴾᴴ Bot"
     send_text_message(sender_id, inquire, quick_replies=QUICK_REPLIES)
+    return
 
 
 def handle_awaiting_size(sender_id, chat_lower, state):
-    """Handle user message when awaiting size"""
     item = state["item"]
     size = extract_size(chat_lower)
     stock = stock_confirmation(sender_id, item, size) + "\n Scarceᴾᴴ Bot"
     send_text_message(sender_id, stock, quick_replies=QUICK_REPLIES)
+    return 
 
 
 def handle_awaiting_confirmation(sender_id, chat_lower, state):
-    """Handle user confirmation (yes/no)"""
     if chat_lower not in ["yes", "y", "no", "n"]:
         item = state["item"]
         size = state["size"]
@@ -67,6 +66,7 @@ def handle_awaiting_confirmation(sender_id, chat_lower, state):
 
     set_state(sender_id, {**state, "state": "awaiting_customer_name"})
     send_text_message(sender_id, "Great! Please provide your full name:")
+    return
 
 
 def handle_awaiting_customer_name(sender_id, chat, state):
@@ -79,6 +79,7 @@ def handle_awaiting_customer_name(sender_id, chat, state):
     })
     msg = f"Thanks, {name}! Can I have your delivery address next?"
     send_text_message(sender_id, msg)
+    return
 
 
 def handle_awaiting_customer_address(sender_id, chat, state):
@@ -91,6 +92,7 @@ def handle_awaiting_customer_address(sender_id, chat, state):
     })
     msg = "Thanks! Lastly, what's your phone number?"
     send_text_message(sender_id, msg)
+    return
 
 
 def handle_awaiting_customer_phone(sender_id, chat, state):
@@ -120,6 +122,7 @@ def handle_awaiting_customer_phone(sender_id, chat, state):
         f"We'll contact you shortly. You can also view the item here:\n{order['url']} \n Scarceᴾᴴ Bot"
     )
     send_text_message(sender_id, confirmation, quick_replies=QUICK_REPLIES)
+    return
 
 
 STATE_HANDLERS = {
@@ -152,3 +155,4 @@ def handle_message(sender_id, chat):
         # Fallback for unknown state
         msg = "I didn't catch that. What item are you looking for? \n Scarceᴾᴴ Bot"
         send_text_message(sender_id, msg, quick_replies=QUICK_REPLIES)
+        return
