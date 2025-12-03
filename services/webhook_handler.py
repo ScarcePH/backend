@@ -37,7 +37,7 @@ def webhook():
                     )
                     continue
 
-           
+            print("RAW MESSAGE EVENT:", event)
 
             if "take_thread_control" in event:
                 # Human agent took over
