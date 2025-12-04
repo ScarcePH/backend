@@ -67,9 +67,38 @@ def handle_awaiting_confirmation(sender_id, chat_lower, state):
         send_text_message(sender_id, msg, quick_replies=QUICK_REPLIES)
         return
 
-    set_state(sender_id, {**state, "state": "awaiting_customer_name"})
+    set_state(sender_id, {**state, "state": "awaiting_customer_payment"})
+
+    send_text_message(sender_id, 
+        "Great! how do you wish to pay? (COD/COP/Pay now) \n \n "
+        "NOTE: COD/COP requires ₱500 Deposit to avoid flakes."
+    )
+    return
+
+def handle_payment_method(sender_id, chat_lower, state):
+    if chat_lower not in ['cop','cod','pay now','payment 1st']:
+        msg = "Please reply with: 'cop','cod','pay now'"
+        send_text_message(sender_id, msg)
+        return
+     
+    set_state(sender_id, {**state, 
+        "state": "handle_verify_payment",
+        "payment_method": chat_lower.strip()
+    })
+
+    msg = (f"Please deposit ₱{state['amount'] if chat_lower == 'pay now' else "500"} and send a SCREENSHOT of transferred amount to confirm order \n \n "
+           "Gcash Account: 09352894676 Marion Rosete")
+    send_text_message(sender_id, msg)
+    return 
+
+def handle_verify_payment(sender_id,ss,state):
+    set_state(sender_id,{**state,
+        "state": "awaiting_customer_name",
+        "verify_payment": ss
+    })
     send_text_message(sender_id, "Great! Please provide your full name:")
     return
+
 
 
 def handle_awaiting_customer_name(sender_id, chat, state):
@@ -122,7 +151,7 @@ def handle_awaiting_customer_phone(sender_id, chat, state):
         f"Name: {order['customer_name']}\n"
         f"Phone: {order['customer_phone']}\n\n"
         f"Address: {order['customer_address']}\n\n"
-        f"We'll contact you shortly. You can also view the item here:\n{order['url']} \n Scarceᴾᴴ Bot"
+        f"We'll verify your payment and contact you shortly \n Scarceᴾᴴ Bot"
     )
     send_text_message(sender_id, confirmation, quick_replies=QUICK_REPLIES)
     return
@@ -132,6 +161,8 @@ STATE_HANDLERS = {
     "idle": handle_idle_state,
     "awaiting_size": handle_awaiting_size,
     "awaiting_confirmation": handle_awaiting_confirmation,
+    "handle_payment_method": handle_payment_method,
+    "handle_verify_payment": handle_verify_payment,
     "awaiting_customer_name": handle_awaiting_customer_name,
     "awaiting_customer_address": handle_awaiting_customer_address,
     "awaiting_customer_phone": handle_awaiting_customer_phone,
@@ -139,17 +170,15 @@ STATE_HANDLERS = {
 
 
 def handle_message(sender_id, chat):
-    """Route message to appropriate handler based on user state"""
-    chat_lower = chat.lower()
+    state = get_state(sender_id)
+    current_state = state.get("state", "idle")
+
+    chat_lower = chat.lower() if current_state !="handle_verify_payment" else chat
 
     auto_reply = get_auto_reply(chat_lower, sender_id)
     if auto_reply:
         send_text_message(sender_id, auto_reply, quick_replies=QUICK_REPLIES)
         return
-
-    # Get current state and route to handler
-    state = get_state(sender_id)
-    current_state = state.get("state", "idle")
 
     handler = STATE_HANDLERS.get(current_state)
     if handler:

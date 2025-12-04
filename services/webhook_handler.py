@@ -48,11 +48,26 @@ def webhook():
                 return "ok",200
             
             if not is_echo:
+                if "message" in event:
 
-                if "message" in event and "text" in event["message"]:
-                    chat = event["message"]["text"].strip()
-                    handle_message(sender_id, chat)
-                    print("BOT REPLIED")
-                    return "ok", 200
+                    msg = event["message"]
+
+                    if "text" in msg:
+                        chat = msg["text"].strip()
+                        handle_message(sender_id, chat)
+                        print("BOT REPLIED")
+                        return "ok", 200
+                    
+
+
+                    if "attachments" in msg:
+                        for attachment in msg["attachments"]:
+                            if attachment["type"] == "image":
+                                image_url = attachment["payload"]["url"]
+                                print(f"[IMAGE_RECEIVED] {image_url}")
+                                handle_message(sender_id, image_url)
+
+                        return "ok", 200
+
 
     return "ok", 200
