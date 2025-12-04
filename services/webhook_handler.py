@@ -1,6 +1,7 @@
 from flask import request
 from .message_handler import handle_postback, handle_message
 from states.handover import set_handover, is_in_handover
+from utils.redis_client import redis_client
 import os
 
 BOT_APP_ID = str(os.environ.get("BOT_APP_ID"))
@@ -16,6 +17,16 @@ def webhook():
         for event in entry.get("messaging", []):
             print(f"[EVENT]: {event}")
             sender_id = event["sender"]["id"]
+
+            ## STOP META RETRIES WHEN RENDER IS DOWN
+            mid = event.get("message", {}).get("mid")
+            if mid:
+                key = f"mid:{mid}"
+                if redis_client.exists(key):
+                    print(f"[SKIP] Duplicate message id {mid}")
+                    return "ok", 200
+                ## 2 MINS 
+                redis_client.setex(key, 120, 1)
 
             if "postback" in event:
                 payload = event["postback"].get("payload")
