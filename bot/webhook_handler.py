@@ -5,6 +5,7 @@ import os
 
 from bot.core.router import handle_message
 from bot.handlers.postback import handle_postback
+from bot.services.stop_retries import stop_retries
 
 BOT_APP_ID = str(os.environ.get("BOT_APP_ID"))
 
@@ -20,30 +21,23 @@ def webhook():
             print(f"[EVENT]: {event}")
             sender_id = event["sender"]["id"]
 
-            ## STOP META RETRIES WHEN RENDER IS DOWN
             mid = event.get("message", {}).get("mid")
             if mid:
-                key = f"mid:{mid}"
-                if redis_client.exists(key):
-                    print(f"[SKIP] Duplicate message id {mid}")
-                    return "ok", 200
-                ## 2 MINS 
-                redis_client.setex(key, 120, 1)
-
+               stop_retries(mid)
+               
             if "postback" in event:
                 payload = event["postback"].get("payload")
                 handle_postback(sender_id, payload)
                 return "ok", 200
 
             if is_in_handover(sender_id):
-                print(f"[HANDOVER] Message from {sender_id} Handover to Admin")
                 return "ok", 200
 
              ## ECHO IS ACITVATED TO CAPTURE ADMIN OWN MESSAGE TO SHUTUP BOT
             is_echo = event.get("message", {}).get("is_echo")
             app_id = str(event.get("message", {}).get("app_id"))
             
-            if is_echo and app_id != BOT_APP_ID:
+            if is_echo and app_id != BOT_APP_ID and not "message" in event:
                 user_psid = event["recipient"]["id"]
                 print(f"[ECHO] ADMIN REPLIES THE CHAT")
                 set_handover(user_psid)
