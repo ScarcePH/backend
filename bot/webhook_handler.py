@@ -39,7 +39,7 @@ def webhook():
             is_echo = event.get("message", {}).get("is_echo")
             app_id = str(event.get("message", {}).get("app_id"))
             
-            if app_id == PAGE_APP_ID and "text" in event:
+            if app_id == PAGE_APP_ID and "text" in event["message"]:
                 user_psid = event["recipient"]["id"]
                 print(f"[ECHO] ADMIN REPLIES THE CHAT")
                 set_handover(user_psid)
