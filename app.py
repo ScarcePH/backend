@@ -1,7 +1,7 @@
 from flask import Flask, request, send_from_directory
 import os
 from dotenv import load_dotenv
-from services.webhook_handler import webhook
+from bot.webhook_handler import webhook
 
 load_dotenv()
 

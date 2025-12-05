@@ -1,6 +1,5 @@
-from services.inventory import search_item,get_item_sizes
-from states.user_state import set_state
-from states.handover import set_handover
+from bot.services.inventory import search_item,get_item_sizes
+from bot.state.manager import set_state, set_handover
 
 def ask_item(sender_id, intent, item, size, draft_reply):
    

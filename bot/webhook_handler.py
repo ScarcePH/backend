@@ -1,8 +1,10 @@
 from flask import request
-from .message_handler import handle_postback, handle_message
-from states.handover import set_handover, is_in_handover
-from utils.redis_client import redis_client
+from bot.state.manager import set_handover, is_in_handover
+from bot.utils.redis_client import redis_client
 import os
+
+from bot.core.router import handle_message
+from bot.handlers.postback import handle_postback
 
 BOT_APP_ID = str(os.environ.get("BOT_APP_ID"))
 

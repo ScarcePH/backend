@@ -1,7 +1,9 @@
 import json
 import os
 import re
-from utils.gpt_client import call_gpt   
+from bot.utils.gpt_client import call_gpt   
+from bot.core.constants import AUTO_REPLIES
+from bot.state.manager import set_handover
 
 SYSTEM_PROMPT_ANALYSIS = os.environ.get("SYSTEM_PROMPT_ANALYSIS")
 
@@ -80,3 +82,12 @@ def get_gpt_analysis(user_message):
     clean = sanitize(parsed)
 
     return clean
+
+
+def get_auto_reply(message, sender_id):
+    for keyword, reply in AUTO_REPLIES.items():
+        if keyword in message:
+            if "talk to human" in keyword:
+                set_handover(sender_id)
+            return reply
+    return None
