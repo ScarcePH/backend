@@ -6,7 +6,7 @@ import os
 from bot.core.router import handle_message
 from bot.handlers.postback import handle_postback
 
-BOT_APP_ID = str(os.environ.get("BOT_APP_ID"))
+PAGE_APP_ID = str(os.environ.get("PAGE_APP_ID"))
 
 
 def webhook():
@@ -39,7 +39,7 @@ def webhook():
             is_echo = event.get("message", {}).get("is_echo")
             app_id = str(event.get("message", {}).get("app_id"))
             
-            if is_echo and app_id != BOT_APP_ID and not "attachments" in event:
+            if app_id == PAGE_APP_ID and "text" in event:
                 user_psid = event["recipient"]["id"]
                 print(f"[ECHO] ADMIN REPLIES THE CHAT")
                 set_handover(user_psid)
