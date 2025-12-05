@@ -7,4 +7,4 @@ def handle(sender_id, screenshot, state):
         "state": "awaiting_customer_name",
         "verify_payment": screenshot
     })
-    reply(sender_id, "Great! Please provide your full name:")
+    reply(sender_id, "Great! Please provide your full name:", None)

@@ -8,4 +8,4 @@ def handle(sender_id, chat, state):
         "state": "awaiting_customer_address",
         "customer_name": name
     })
-    reply(sender_id, f"Thanks, {name}! Can I have your delivery address next?")
+    reply(sender_id, f"Thanks, {name}! Can I have your delivery address next?", None)

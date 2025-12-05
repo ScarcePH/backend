@@ -3,7 +3,7 @@ from bot.state.manager import set_state
 
 def handle_payment_method(sender_id, chat_lower, state):
     if chat_lower not in ['cop', 'cod', 'pay now', 'payment 1st']:
-        reply(sender_id, "Please reply with: 'cop', 'cod', or 'pay now'")
+        reply(sender_id, "Please reply with: 'cop', 'cod', or 'pay now'",None)
         return
 
     amount = state.get("amount") if chat_lower == "pay now" else 500
@@ -16,4 +16,6 @@ def handle_payment_method(sender_id, chat_lower, state):
 
     reply(sender_id,
         f"Please deposit ₱{amount} and send a screenshot.\n\n"
-        "Gcash: 09352894676 – Marion Rosete")
+        "Gcash: 09352894676 – Marion Rosete",
+        None
+    )

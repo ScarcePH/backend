@@ -8,4 +8,4 @@ def handle(sender_id, chat, state):
         "state": "awaiting_customer_phone",
         "customer_address": address
     })
-    reply(sender_id, "Thanks! Lastly, what's your phone number?")
+    reply(sender_id, "Thanks! Lastly, what's your phone number?", None)
