@@ -5,7 +5,6 @@ import os
 
 from bot.core.router import handle_message
 from bot.handlers.postback import handle_postback
-from bot.services.stop_retries import stop_retries
 
 BOT_APP_ID = str(os.environ.get("BOT_APP_ID"))
 
@@ -23,7 +22,10 @@ def webhook():
 
             mid = event.get("message", {}).get("mid")
             if mid:
-               stop_retries(mid)
+                key = f"mid:{mid}"
+                if redis_client.exists(key):
+                    return "ok", 200
+                redis_client.setex(key, 120, 1)
                
             if "postback" in event:
                 payload = event["postback"].get("payload")
