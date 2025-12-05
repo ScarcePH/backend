@@ -10,6 +10,7 @@ def set_handover(sender_id):
 
 def clear_handover(sender_id):
     redis_client.delete(PREFIX + sender_id)
+    reset_state(sender_id)
 
 def is_in_handover(sender_id):
     return redis_client.exists(PREFIX + sender_id) == 1
