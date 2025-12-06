@@ -1,72 +1,58 @@
-from flask import request
-from bot.state.manager import set_handover, is_in_handover,get_state
+from flask import Blueprint, request
+from bot.core.router import handle_message
+from bot.handlers.postback import handle_postback
+from bot.state.manager import set_handover, is_in_handover, get_state
 from bot.utils.redis_client import redis_client
 import os
 
-from bot.core.router import handle_message
-from bot.handlers.postback import handle_postback
-
+bot_bp = Blueprint("bot", __name__)
 PAGE_APP_ID = str(os.environ.get("PAGE_APP_ID"))
 
-
+@bot_bp.post("/webhook")
 def webhook():
-    data = request.get_json()
+    data = request.json
 
     if data.get("object") != "page":
-        return "ignored", 200
+        return {"status": "ignored"}
 
     for entry in data.get("entry", []):
         for event in entry.get("messaging", []):
-            print(f"[EVENT]: {event}")
             sender_id = event["sender"]["id"]
 
+            # prevent duplicate messages
             mid = event.get("message", {}).get("mid")
             if mid:
                 key = f"mid:{mid}"
                 if redis_client.exists(key):
-                    return "ok", 200
+                    return {"status": "ok"}
                 redis_client.setex(key, 120, 1)
-               
+
+            # postback
             if "postback" in event:
-                payload = event["postback"].get("payload")
-                handle_postback(sender_id, payload)
-                return "ok", 200
+                handle_postback(sender_id, event["postback"].get("payload"))
+                return {"status": "ok"}
 
             if is_in_handover(sender_id):
-                return "ok", 200
+                return {"status": "ok"}
 
-             ## ECHO IS ACITVATED TO CAPTURE ADMIN OWN MESSAGE TO SHUTUP BOT
             is_echo = event.get("message", {}).get("is_echo")
             app_id = str(event.get("message", {}).get("app_id"))
-            
+
             if app_id == PAGE_APP_ID and "text" in event["message"]:
-                user_psid = event["recipient"]["id"]
-                print(f"[ECHO] ADMIN REPLIES THE CHAT")
-                set_handover(user_psid)
-                return "ok",200
-            
-            if not is_echo:
-                if "message" in event:
+                set_handover(event["recipient"]["id"])
+                return {"status": "ok"}
 
-                    msg = event["message"]
+            if not is_echo and "message" in event:
+                msg = event["message"]
+                if "text" in msg:
+                    handle_message(sender_id, msg["text"].strip())
+                    return {"status": "ok"}
 
-                    if "text" in msg:
-                        chat = msg["text"].strip()
-                        handle_message(sender_id, chat)
-                        print("BOT REPLIED")
-                        return "ok", 200
-                    
-                    state = get_state(sender_id)
-                    current = state.get("state", "idle")
-                    if current == 'handle_verify_payment':
-                        if "attachments" in msg:
-                            for attachment in msg["attachments"]:
-                                if attachment["type"] == "image":
-                                    image_url = attachment["payload"]["url"]
-                                    print(f"[IMAGE_RECEIVED] {image_url}")
-                                    handle_message(sender_id, image_url)
+                state = get_state(sender_id)
+                if state.get("state") == 'handle_verify_payment':
+                    for attachment in msg.get("attachments", []):
+                        if attachment["type"] == "image":
+                            handle_message(sender_id, attachment["payload"]["url"])
+                    return {"status": "ok"}
 
-                            return "ok", 200
-
-
-    return "ok", 200
+    return {"status": "ok"}

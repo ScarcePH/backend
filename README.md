@@ -4,10 +4,16 @@ A Flask-based Facebook Messenger bot for ScarcePH, powered by OpenAI GPT and aut
 
 ## Features
 
-- Quick replies for catalog, ordering, payment, shipping, and human support
-- Auto-replies for common questions
-- GPT-powered fallback for other queries
-- Human handover option
+### 🧠 AI + Bot Logic
+- GPT-powered Intent Detection and fallback replies  
+- Rule-based responses for FAQs, catalog, ordering, shipping, and payments  
+- Multi-step conversation flow (state machine)  
+- Human handover via Messenger echo-detection
+
+### 👟 Commerce Workflow
+- Saves customers, orders, and addresses to PostgreSQL  
+- Supports payment image verification  
+
 
 ## Setup
 1. **Clone the repo**  
@@ -16,3 +22,9 @@ A Flask-based Facebook Messenger bot for ScarcePH, powered by OpenAI GPT and aut
     source venv/bin/activate
 3. **Install dependencies**  
     pip install -r requirements.txt
+4. **Database Setup**
+    flask db init
+    flask db migrate -m "Initial tables"
+    flask db upgrade
+5. **Run**
+    python app.py

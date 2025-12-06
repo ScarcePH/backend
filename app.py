@@ -1,18 +1,33 @@
 from flask import Flask, request, send_from_directory
-import os
 from dotenv import load_dotenv
-from bot.webhook_handler import webhook
+from bot.webhook_handler import bot_bp
+from api import customers_bp, orders_bp, inventory_bp
+from db.database import db, migrate
+from config import Config
+import os
+from db.models import Customers, Inventory, Order
 
 load_dotenv()
 
-VERIFY_TOKEN = os.environ.get("VERIFY_TOKEN")
-SYSTEM_PROMPT = os.environ.get("SYSTEM_PROMPT")
 
 
 
 app = Flask(__name__)
+app.config.from_object(Config)
 
+db.init_app(app)
+migrate.init_app(app, db)
+# -------------------------------
+# Bot POST webhook
+# -------------------------------
+app.register_blueprint(bot_bp)
 
+# -------------------------------
+# API blueprints
+# -------------------------------
+app.register_blueprint(customers_bp, url_prefix="/api")
+app.register_blueprint(orders_bp, url_prefix="/api")
+app.register_blueprint(inventory_bp, url_prefix="/api")
 
 @app.route("/")
 def index():
@@ -21,7 +36,7 @@ def index():
 
 @app.route("/webhook", methods=["GET"])
 def verify():
-    if request.args.get("hub.verify_token") == VERIFY_TOKEN:
+    if request.args.get("hub.verify_token") == os.environ.get("VERIFY_TOKEN"):
         return request.args.get("hub.challenge")
     return "Verification failed", 403
 
@@ -29,10 +44,6 @@ def verify():
 def privacy_policy():
     return send_from_directory('static/privacy-policy', 'index.html')
 
-
-@app.route("/webhook", methods=["POST"])
-def webhook_route():
-    return webhook()
 
 
 # @app.route("/test", methods=["POST"])
