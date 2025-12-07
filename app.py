@@ -6,6 +6,7 @@ from db.database import db, migrate
 from config import Config
 import os
 from db.models import Customers, Inventory, Order
+from flask_migrate import upgrade
 
 load_dotenv()
 
@@ -17,6 +18,15 @@ app.config.from_object(Config)
 
 db.init_app(app)
 migrate.init_app(app, db)
+# ---------------------------------
+# AUTO-RUN MIGRATIONS ON STARTUP
+# ---------------------------------
+with app.app_context():
+    try:
+        upgrade()
+        print("✓ Migrations applied successfully.")
+    except Exception as e:
+        print("✗ Migration failed:", e)
 # -------------------------------
 # Bot POST webhook
 # -------------------------------
