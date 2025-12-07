@@ -7,6 +7,8 @@ from bot.handlers import (
     awaiting_customer_name,
     awaiting_customer_address,
     awaiting_customer_phone,
+    repeat_customer_confirm
+    
 )
 from bot.services.nlp import get_auto_reply
 from bot.services.messenger import reply
@@ -22,6 +24,7 @@ STATE_HANDLERS = {
     "awaiting_customer_name": awaiting_customer_name,
     "awaiting_customer_address": awaiting_customer_address,
     "awaiting_customer_phone": awaiting_customer_phone,
+    "repeat_customer_confirm": repeat_customer_confirm
 }
 
 def handle_message(sender_id, chat):

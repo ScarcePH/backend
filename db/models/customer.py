@@ -4,7 +4,7 @@ class Customers(db.Model):
     __tablename__ = "customers"
 
     id = db.Column(db.Integer, primary_key=True)
-    psid = db.Column(db.String, unique=True, index=True, nullable=False)
+    sender_id = db.Column(db.String, unique=True, index=True, nullable=False)
 
     name = db.Column(db.String)
     phone = db.Column(db.String)

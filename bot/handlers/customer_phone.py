@@ -1,6 +1,7 @@
 from bot.services.messenger import reply
 from bot.state.manager import reset_state
 from bot.core.constants import CONFIRM_HEADER
+from db.repository.customer import save_customer,get_customer,update_customer
 
 def handle(sender_id, chat, state):
     phone = chat.strip()
@@ -17,6 +18,24 @@ def handle(sender_id, chat, state):
 
     reset_state(sender_id)
 
+    customer_payload = {
+        "sender_id": sender_id,
+        "name": state["customer_name"],
+        "phone": phone,
+        "address": state["customer_address"]
+    }
+    customer_exists = get_customer(sender_id)
+    if(not customer_exists):
+        customer = save_customer(customer_payload)
+        print(f"[CUSTOMER]:{customer.id}")
+
+    update_customer(
+        sender_id,
+        order["customer_name"],
+        order["customer_phone"],
+        order["customer_address"]
+    )
+
     msg = (
         f"{CONFIRM_HEADER}"
         f"Item: {order['item']}\n"
@@ -28,4 +47,4 @@ def handle(sender_id, chat, state):
         "We'll verify your payment and contact you shortly."
     )
 
-    reply(sender_id, msg)
+    return reply(sender_id, msg)
