@@ -6,7 +6,7 @@ def handle_payment_method(sender_id, chat_lower, state):
         reply(sender_id, "Please reply with: 'cop', 'cod', or 'pay now'",None)
         return
 
-    amount = state.get("amount") if chat_lower == "pay now" else 500
+    amount = state["price"] if chat_lower == "pay now" else 500
 
     set_state(sender_id, {
         **state,
