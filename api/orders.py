@@ -1,15 +1,14 @@
 from flask import Blueprint, request, jsonify
 from db.database import db
 from db.models import Order
+from db.repository.order import save_order
 
 orders_bp = Blueprint("orders", __name__)
 
 @orders_bp.route("/orders", methods=["POST"])
 def create_order():
     data = request.json
-    order = Order(**data)
-    db.session.add(order)
-    db.session.commit()
+    save_order(data)
     return jsonify({"status": "ok", "order": data})
 
 @orders_bp.route("/orders/<int:order_id>", methods=["PUT"])
