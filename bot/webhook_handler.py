@@ -58,7 +58,7 @@ def webhook():
                         if state.get("state") == 'handle_verify_payment':
                             handle_message(sender_id, attachment["payload"]["url"])
                         else:
-                            reply(sender_id, f"{IMAGE_SENT_MSG}\n{BOT_TAG}")
+                            reply(sender_id, f"{IMAGE_SENT_MSG}")
                             return {"status","ok"}
                 return {"status": "ok"}
 
