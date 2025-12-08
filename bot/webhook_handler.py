@@ -19,6 +19,7 @@ def webhook():
 
     for entry in data.get("entry", []):
         for event in entry.get("messaging", []):
+            print(f"[EVENT]: {event}")
             sender_id = event["sender"]["id"]
 
             # prevent duplicate messages
