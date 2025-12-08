@@ -3,6 +3,8 @@ from bot.core.router import handle_message
 from bot.handlers.postback import handle_postback
 from bot.state.manager import set_handover, is_in_handover, get_state
 from bot.utils.redis_client import redis_client
+from bot.services.messenger import reply
+from bot.core.constants import IMAGE_SENT_MSG,BOT_TAG
 import os
 
 bot_bp = Blueprint("bot", __name__)
@@ -48,11 +50,16 @@ def webhook():
                     handle_message(sender_id, msg["text"].strip())
                     return {"status": "ok"}
 
-                state = get_state(sender_id)
-                if state.get("state") == 'handle_verify_payment':
-                    for attachment in msg.get("attachments", []):
-                        if attachment["type"] == "image":
+              
+                for attachment in msg.get("attachments", []):
+                    
+                    if attachment["type"] == "image":
+                        state = get_state(sender_id)
+                        if state.get("state") == 'handle_verify_payment':
                             handle_message(sender_id, attachment["payload"]["url"])
-                    return {"status": "ok"}
+                        else:
+                            reply(sender_id, f"{IMAGE_SENT_MSG}\n{BOT_TAG}")
+                            return {"status","ok"}
+                return {"status": "ok"}
 
     return {"status": "ok"}

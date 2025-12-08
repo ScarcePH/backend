@@ -1,8 +1,9 @@
 
-BOT_TAG = " Scarceᴾᴴ Bot"
+BOT_TAG = " --Scarceᴾᴴ Bot"
 WELCOME_MSG = "Hi there! Welcome to Scarceᴾᴴ 👋\nHow can we help you today?"
 ERROR_MSG = "I didn't catch that. What item are you looking for?"
 CONFIRM_HEADER = "All set!\n\n🛒 **Order Reserved**\n"
+IMAGE_SENT_MSG = "I’m sorry, I can’t look at the photo. Could you please type the name and size instead? I’ll check it right away!"
 
 QUICK_REPLIES = [
     "💬 Talk to Human",
