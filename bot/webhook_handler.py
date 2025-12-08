@@ -10,9 +10,9 @@ import os
 bot_bp = Blueprint("bot", __name__)
 PAGE_APP_ID = str(os.environ.get("PAGE_APP_ID"))
 
-@bot_bp.route("/webhook", methods=["GET", "POST"])
+@bot_bp.route("/webhook", methods=["POST"])
 def webhook():
-    print("[TEST LOGS]")
+    print("[WEBHOOK HIT]", flush=True)
     data = request.json
 
     if data.get("object") != "page":
@@ -20,7 +20,7 @@ def webhook():
 
     for entry in data.get("entry", []):
         for event in entry.get("messaging", []):
-            print(f"[EVENT]: {event}")
+            print(f"[EVENT]: {event}", flush=True)
             sender_id = event["sender"]["id"]
 
             # prevent duplicate messages
@@ -66,3 +66,9 @@ def webhook():
                 return {"status": "ok"}
 
     return {"status": "ok"}
+
+@bot_bp.route("/webhook", methods=["GET"])
+def verify():
+    if request.args.get("hub.verify_token") == os.environ.get("VERIFY_TOKEN"):
+        return request.args.get("hub.challenge")
+    return "Verification failed", 403

@@ -44,11 +44,11 @@ def index():
     return "Messenger AI bot is live!"
 
 
-@app.route("/webhook", methods=["GET"])
-def verify():
-    if request.args.get("hub.verify_token") == os.environ.get("VERIFY_TOKEN"):
-        return request.args.get("hub.challenge")
-    return "Verification failed", 403
+# @app.route("/webhook", methods=["GET"])
+# def verify():
+#     if request.args.get("hub.verify_token") == os.environ.get("VERIFY_TOKEN"):
+#         return request.args.get("hub.challenge")
+#     return "Verification failed", 403
 
 @app.route('/privacy-policy')
 def privacy_policy():
