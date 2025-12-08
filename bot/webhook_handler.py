@@ -10,8 +10,9 @@ import os
 bot_bp = Blueprint("bot", __name__)
 PAGE_APP_ID = str(os.environ.get("PAGE_APP_ID"))
 
-@bot_bp.post("/webhook")
+@bot_bp.route("/webhook", methods=["GET", "POST"])
 def webhook():
+    print("[TEST LOGS]")
     data = request.json
 
     if data.get("object") != "page":
@@ -58,6 +59,7 @@ def webhook():
                         state = get_state(sender_id)
                         if state.get("state") == 'handle_verify_payment':
                             handle_message(sender_id, attachment["payload"]["url"])
+                            return {"status": "ok"}
                         else:
                             reply(sender_id, f"{IMAGE_SENT_MSG}")
                             return {"status","ok"}
