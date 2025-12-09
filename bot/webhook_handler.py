@@ -15,6 +15,7 @@ def webhook():
     print("[WEBHOOK HIT]", flush=True)
     data = request.json
 
+    print(f"[DATA]: {data}", flush=True)
     if data.get("object") != "page":
         return {"status": "ignored"}
 
