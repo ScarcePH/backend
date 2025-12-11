@@ -7,9 +7,11 @@ def handle(sender_id, chat_lower, state):
     item = state["item"]
     size = extract_size(chat_lower)
     if size:
-        stocks = search_items(sender_id, item, size)
+        stocks = search_items(item, size)
         if stocks.get("found"):
             reply(sender_id, f"We have {item} in size {size}us")
             send_carousel(sender_id, stocks["items"])
             return
-        reply(sender_id, f"We have {item} in size {size}us")
+        reply(sender_id, f"It’s not available yet. Would you like me to notify you as soon as it is? (yes/no)")
+
+        ## NEXT STEP SAVE TO LEADS AND NOTIFY IF AVAILABLE
