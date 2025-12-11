@@ -17,12 +17,12 @@ def send_carousel(sender_id, products=None):
                 {
                     "type": "web_url",
                     "title": "View",
-                    "payload": item['url']
+                    "url": item['url']
                 },
                 {
                     "type": "postback",
                     "title": "Order Now",
-                    "payload": f"{item['name']}"
+                    "payload": item['name']
                 }
             ]
         }
