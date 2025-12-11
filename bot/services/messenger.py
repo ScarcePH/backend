@@ -11,9 +11,10 @@ def send_carousel(sender_id, products=None):
     print("SENDING CAROUSEL")
     items = []
     for item in products:
+        print("[ITEM]:",item)
         carousel={
             "title":item['name'],
-            "subtitle": f"Sizes:{item['size']}|{item['price']}|{item['status']}",
+            "subtitle": f"Sizes:{item['size']}|{item['price']}",
             "image_url":item['image'],
             "buttons":[
                 {
@@ -29,6 +30,8 @@ def send_carousel(sender_id, products=None):
             ]
         }
         items.append(carousel)
+
+    print(f"[items]:", items)
     message = {
         "attachment": {
             "type": "template",
