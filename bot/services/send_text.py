@@ -1,5 +1,6 @@
 import requests
 import os
+import json
 
 PAGE_ACCESS_TOKEN = os.environ.get("PAGE_ACCESS_TOKEN")
 
@@ -31,9 +32,16 @@ def send_template_message(recipient_id, payload):
         "recipient": {"id": recipient_id},
         "message": payload
     }
+    print("=== TEMPLATE PAYLOAD ===")
+    print(json.dumps(payload, indent=2))
 
     url = f"https://graph.facebook.com/v17.0/me/messages?access_token={PAGE_ACCESS_TOKEN}"
+
     r = requests.post(url, json=data)
+
+    print("=== TEMPLATE RESPONSE ===")
+    print(r.status_code, r.text)
+    
     if r.status_code != 200:
         print(f"[ERROR] Message send failed: {r.text}. [RECIPIENT_ID]:{recipient_id}")
     r.json()
