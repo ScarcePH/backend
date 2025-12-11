@@ -26,12 +26,13 @@ def send_carousel(sender_id, products=None):
     for item in products:
         carousel={
             "title":item['name'],
-            "subtitle": f"Sizes:{item.size}|{item.price}|{item.status}",
+            "subtitle": f"Sizes:{item['size']}|{item['price']}|{item['status']}",
+            "image_url":item['image'],
             "buttons":[
                 {
                     "type": "web_url",
                     "title": "View",
-                    "payload": item.url
+                    "payload": item['url']
                 },
                 {
                     "type": "postback",
