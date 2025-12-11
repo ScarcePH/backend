@@ -26,11 +26,11 @@ def handle(sender_id, chat, state):
         if stocks.get("found"):
             reply(sender_id, f"We have {item} in size {size}us")
             send_carousel(sender_id, stocks["items"])
-            return
+            return "ok", 200
         
         reply(sender_id, f"We Currently Don't have {item} in size {size}us")
         reset_state(sender_id)
-        return
+        return "ok", 200
     
     if not size:
         set_state(sender_id, {
@@ -39,4 +39,4 @@ def handle(sender_id, chat, state):
         })
 
         reply(sender_id, f"What size for '{item}'?")
-        return 
+        return "ok", 200

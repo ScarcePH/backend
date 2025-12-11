@@ -35,10 +35,13 @@ def handle_message(sender_id, chat):
 
     auto = get_auto_reply(chat_lower, sender_id)
     if auto:
-        return reply(sender_id, auto)
+        reply(sender_id, auto)
+        return "ok",200
 
     handler = STATE_HANDLERS.get(current)
     if handler:
-        return handler(sender_id, chat_lower, state)
+        handler(sender_id, chat_lower, state)
+        return "ok",200
 
-    return reply(sender_id, ERROR_MSG)
+    reply(sender_id, ERROR_MSG)
+    return "ok",200
