@@ -34,4 +34,6 @@ def send_template_message(recipient_id, payload):
 
     url = f"https://graph.facebook.com/v17.0/me/messages?access_token={PAGE_ACCESS_TOKEN}"
     r = requests.post(url, json=data)
+    if r.status_code != 200:
+        print(f"[ERROR] Message send failed: {r.text}. [RECIPIENT_ID]:{recipient_id}")
     r.json()
