@@ -1,7 +1,10 @@
-from bot.services.messenger import reply
+from bot.services.messenger import reply,send_carousel
 from bot.services.nlp import get_gpt_analysis
 from bot.services.stock import ask_item, stock_confirmation
-from bot.state.manager import set_handover
+from bot.state.manager import set_handover,set_state,reset_state
+
+from db.repository.inventory import search_items, get_item_sizes
+from bot.core.constants import QUICK_REPLIES
 
 def handle(sender_id, chat, state):
     analysis = get_gpt_analysis(chat)
@@ -10,12 +13,30 @@ def handle(sender_id, chat, state):
 
     if intent == "handover":
         set_handover(sender_id)
+        reply(sender_id, draft)
+        return 
+
+    if not item or intent not in ["check_product", "ask_price", "ask_availability"]:
+        reply(sender_id, draft, QUICK_REPLIES)
+        return 
 
     if item and size:
-        ask_item(sender_id, intent, item, size, draft)
-        stock = stock_confirmation(sender_id, item, size)
-        reply(sender_id, stock)
-        return
+        stocks = search_items(item, size)
 
-    inquiry = ask_item(sender_id, intent, item, size, draft)
-    reply(sender_id, inquiry)
+        if stocks.get("found"):
+            reply(sender_id, f"We have {item} in size {size}us")
+            send_carousel(sender_id, stocks["items"])
+            return
+        
+        reply(sender_id, f"We Currently Don't have {item} in size {size}us")
+        reset_state(sender_id)
+        return
+    
+    if not size:
+        set_state(sender_id, {
+            "state": "awaiting_size",
+            "item": item
+        })
+
+        reply(sender_id, f"What size for '{item}'?")
+        return 
