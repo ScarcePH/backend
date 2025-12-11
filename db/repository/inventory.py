@@ -47,7 +47,10 @@ def search_items(name, size=None):
             "name": item.name,
             "size": item.size,
             "price": item.price,
-            "url": item.url
+            "url": item.url,
+            "image": item.image,
+            "status": item.status,
+            "condition": item.condition
         })
 
     return {
