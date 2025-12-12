@@ -33,7 +33,7 @@ def handle_message(sender_id, chat):
 
     chat_lower = chat.lower() if current != "handle_verify_payment" else chat
 
-    auto = get_auto_reply(chat_lower, sender_id)
+    auto = get_auto_reply(chat_lower, sender_id, state)
     if auto:
         reply(sender_id, auto)
         return "ok",200

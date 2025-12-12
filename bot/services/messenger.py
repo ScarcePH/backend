@@ -12,24 +12,25 @@ def send_carousel(sender_id, products=None):
     items = []
     for item in products:
         print("[ITEM]:",item)
-        carousel={
-            "title":item['name'],
-            "subtitle": f"Sizes:{item['size']}|{item['price']}",
-            "image_url":item['image'],
-            "buttons":[
-                {
-                    "type": "web_url",
-                    "title": "View",
-                    "url": item['url']
-                },
-                {
-                    "type": "postback",
-                    "title": "Order Now",
-                    "payload": item['name']
-                }
-            ]
-        }
-        items.append(carousel)
+        for variation in item.variations:
+            carousel={
+                "title":item['name'],
+                "subtitle": f"Sizes:{variation['size']}|{variation['price']}",
+                "image_url":item['image'],
+                "buttons":[
+                    {
+                        "type": "web_url",
+                        "title": "View",
+                        "url": variation['url']
+                    },
+                    {
+                        "type": "postback",
+                        "title": "Order Now",
+                        "payload": variation['name']
+                    }
+                ]
+            }
+            items.append(carousel)
 
     print(f"[items]:", items)
     message = {

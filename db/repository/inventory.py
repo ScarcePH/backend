@@ -1,4 +1,4 @@
-from db.models import Inventory
+from db.models import Inventory, InventoryVariation
 from db.database import db
 import re
 
@@ -9,21 +9,25 @@ def save_inventory(data: dict):
     db.session.commit()
     return inventory
 
+def save_variation(item_id, data:dict):
+    variation = InventoryVariation(
+        inventory_id=item_id,
+       **data
+    )
+    db.session.add(variation)
+    db.session.commit()
+    return variation
+
 def get_all_inventory():
     items = Inventory.query.all()
-    return [
-        {
-            "id": item.id,
-            "name": item.name,
-            "description": item.description,
-            "condition": item.condition,
-            "size": item.size,
-            "price": item.price,
-            "status": item.status,
-            "url": item.url
-        }
-        for item in items
-    ]
+    result = []
+    for i in items:
+        result.append({
+            "id": i.id,
+            "name": i.name,
+            "description": i.description,
+        })
+    return result
 
 def search_items(name, size=None):
 
@@ -83,3 +87,48 @@ def get_item_sizes(size, item_name):
         f"We don't have '{item_name}' in size {size}us. "
         f"However, these are available in size {size}us: {formatted_list}."
     )
+
+def get_inventory_with_size(name, size):
+    query = (
+        Inventory.query
+        .filter(Inventory.name.ilike(f"%{name}%"))
+        .join(InventoryVariation)
+        
+    )
+    if size:
+        query = query.filter(InventoryVariation.size == size)
+
+    inventories = query.all()
+
+    result = []
+    for item in inventories:
+        result.append({
+            "id": item.id,
+            "name": item.name,
+            "variations": [
+                {
+                    "id": v.id,
+                    "size": v.size,
+                    "condition": v.condition,
+                    "price": v.price,
+                    "stock": v.stock
+                }
+                for v in item.variations if v.size == size 
+            ],
+            "instocks": [
+                {
+                    "id": v.id,
+                    "size": v.size,
+                    "condition": v.condition,
+                    "price": v.price,
+                    "stock": v.stock
+                }
+                for v in item.variations
+            ],
+        })
+
+    return {
+        "found": len(result)>0,
+        "count": len(result),
+        "items": result
+    }
