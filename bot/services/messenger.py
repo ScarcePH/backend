@@ -12,7 +12,7 @@ def send_carousel(sender_id, products=None):
     items = []
     for item in products:
         print("[ITEM]:",item)
-        for variation in item.variations:
+        for variation in item['variations']:
             carousel={
                 "title":item['name'],
                 "subtitle": f"Sizes:{variation['size']}|{variation['price']}",
