@@ -16,7 +16,7 @@ def send_carousel(sender_id, products=None):
             carousel={
                 "title":item['name'],
                 "subtitle": f"Sizes:{variation['size']}|{variation['price']}",
-                "image_url":item['image'],
+                "image_url":variation['image'],
                 "buttons":[
                     {
                         "type": "web_url",
