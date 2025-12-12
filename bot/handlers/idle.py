@@ -29,7 +29,10 @@ def handle(sender_id, chat, state):
             return "ok", 200
         not_available = f"We Currently Don't have {item} in size {size}us"
         reply(sender_id, not_available , NOTIFY_USER)
-        reset_state(sender_id)
+        set_state(sender_id, {
+            "size": size,
+            "item": item
+        })
         return "ok", 200
     
     if not size:
