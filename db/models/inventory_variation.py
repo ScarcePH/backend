@@ -12,5 +12,6 @@ class InventoryVariation(db.Model):
     image = db.Column(db.String)
     status = db.Column(db.String)
     stock = db.Column(db.Integer, default=0)
+    url = db.Column(db.String)
 
 
