@@ -21,7 +21,7 @@ AUTO_REPLIES = {
     "💰 payment options": "You can pay via:\n💸 GCash\n🏦 BPI\n🚚 COD/COP (with ₱500 deposit to avoid Flakers)\n\n*Reservation deposit is non-refundable.*",
     "🚚 shipping info": "Shipping is via LBC 📦\n📍 Luzon/Visayas: 5–8 days\n📍 Mindanao: 3–5 days\n\nCOD/COP available din (with ₱500 deposit).",
     "💬 talk to human": "Got it! We'll connect you with someone from the team asap 👍 You can continue chatting here and a real person will reply shortly.",
-    "🔔 Notify me": "Got it!, We will message you immediately when the item is available"
+    "🔔 notify me": "Got it!, We will message you immediately when the item is available"
 }
 
 NOTIFY_USER =[
