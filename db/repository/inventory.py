@@ -111,19 +111,10 @@ def get_inventory_with_size(name, size):
                     "size": v.size,
                     "condition": v.condition,
                     "price": v.price,
-                    "stock": v.stock
+                    "stock": v.stock,
+                    "url": v.url
                 }
                 for v in item.variations if v.size == size 
-            ],
-            "instocks": [
-                {
-                    "id": v.id,
-                    "size": v.size,
-                    "condition": v.condition,
-                    "price": v.price,
-                    "stock": v.stock
-                }
-                for v in item.variations
             ],
         })
 
