@@ -112,7 +112,8 @@ def get_inventory_with_size(name, size):
                     "condition": v.condition,
                     "price": v.price,
                     "stock": v.stock,
-                    "url": v.url
+                    "url": v.url,
+                    "image": v.image
                 }
                 for v in item.variations if v.size == size 
             ],

@@ -26,7 +26,7 @@ def send_carousel(sender_id, products=None):
                     {
                         "type": "postback",
                         "title": "Order Now",
-                        "payload": variation['name']
+                        "payload": item['name']
                     }
                 ]
             }
