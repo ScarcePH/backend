@@ -3,6 +3,7 @@ from bot.services.messenger import reply,send_carousel
 from bot.services.stock import stock_confirmation
 from db.repository.inventory import search_items
 from bot.core.constants import NOTIFY_USER
+from bot.state.manager import set_state
 
 def handle(sender_id, chat_lower, state):
     item = state["item"]
@@ -13,7 +14,11 @@ def handle(sender_id, chat_lower, state):
             reply(sender_id, f"We have {item} in size {size}us")
             send_carousel(sender_id, stocks["items"])
             return
-        not_available = f"We Currently Don't have {item} in size {size}us"
+        not_available = f"We Currently Don't have {item} in size {size}us.\n Would like me to notify you when it is available? "
         reply(sender_id, not_available , NOTIFY_USER)
+        set_state(sender_id, {
+            "size": size,
+            "item": item
+        })
 
         ##NEXT STEP IF NOT AVAILABLE SAVE TO LEADS AND NOTIFY IF AVAILABLE

@@ -27,7 +27,7 @@ def handle(sender_id, chat, state):
             reply(sender_id, f"We have {item} in size {size}us")
             send_carousel(sender_id, stocks["items"])
             return "ok", 200
-        not_available = f"We Currently Don't have {item} in size {size}us"
+        not_available = f"We Currently Don't have {item} in size {size}us.\n Would like me to notify you when it is available? "
         reply(sender_id, not_available , NOTIFY_USER)
         set_state(sender_id, {
             "size": size,

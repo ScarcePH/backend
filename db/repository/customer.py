@@ -39,7 +39,7 @@ def create_leads(sender_id, item, size):
     
     data= {
         "sender_id":sender_id,
-        "item":item,
+        "name":item,
         "size": size
     }
     lead = Leads(**data)
