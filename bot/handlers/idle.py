@@ -31,7 +31,7 @@ def handle(sender_id, chat, state):
         reply(sender_id, not_available , NOTIFY_USER)
         set_state(sender_id, {
             "size": size,
-            "item": item
+            "name": item
         })
         return "ok", 200
     
