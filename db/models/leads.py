@@ -4,7 +4,7 @@ class Leads(db.Model):
     __tablename__ = "leads"
 
     id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.String, unique=True, index=True, nullable=False)
+    sender_id = db.Column(db.String)
     name = db.Column(db.String, nullable=False)
     size = db.Column(db.String)
 
