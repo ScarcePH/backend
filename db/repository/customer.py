@@ -38,10 +38,11 @@ def create_leads(sender_id, item, size):
         return {'error': 'sender_id parameter is required'}, 400
     
     data= {
-        item,
-        size
+        "sender_id":sender_id,
+        "item":item,
+        "size": size
     }
-    customer = Leads(**data)
-    db.session.add(customer)
+    lead = Leads(**data)
+    db.session.add(lead)
     db.session.commit()
-    return customer
+    return lead
