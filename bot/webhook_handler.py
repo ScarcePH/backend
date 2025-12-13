@@ -33,7 +33,7 @@ def webhook():
 
             # postback
             if "postback" in event:
-                handle_postback(sender_id, event["postback"].get("payload"))
+                handle_postback(sender_id, event["postback"].get("payload"),event)
                 return {"status": "ok"}
 
             if is_in_handover(sender_id):

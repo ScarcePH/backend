@@ -1,5 +1,6 @@
 from bot.services.send_text import send_text_message, send_template_message
 from bot.core.constants import BOT_TAG, QUICK_REPLIES
+import json
 
 def reply(sender_id, message, quick_replies=QUICK_REPLIES):
     print("SENDING TEXT")
@@ -15,7 +16,7 @@ def send_carousel(sender_id, products=None):
         for variation in item['variations']:
             carousel={
                 "title":item['name'],
-                "subtitle": f"Sizes:{variation['size']}|{variation['price']}",
+                "subtitle": f"{variation['condition']} | Sizes: {variation['size']} | ₱{variation['price']}",
                 "image_url":variation['image'],
                 "buttons":[
                     {
@@ -26,7 +27,11 @@ def send_carousel(sender_id, products=None):
                     {
                         "type": "postback",
                         "title": "Order Now",
-                        "payload": item['name']
+                        "payload": json.dumps({
+                            "action": "ORDER",
+                            "item_id": item["id"],
+                            "variation_id": variation["id"]
+                        })
                     }
                 ]
             }

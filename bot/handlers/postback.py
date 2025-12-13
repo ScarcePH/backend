@@ -1,9 +1,15 @@
 from bot.services.messenger import reply
 from bot.core.constants import WELCOME_MSG
 from bot.state.manager import reset_state, clear_handover
+import json
 
-def handle_postback(sender_id, payload):
+def handle_postback(sender_id, payload,event):
     if payload == "GET_STARTED":
         clear_handover(sender_id)
         reset_state(sender_id)
         reply(sender_id, WELCOME_MSG)
+
+    payload = json.loads(event["postback"]["payload"])
+
+    if payload["action"] == "ORDER":
+        print("[POSTBACK EVENT]:", event)
