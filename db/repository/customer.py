@@ -33,10 +33,14 @@ def update_customer(sender_id: str, name: str = None, phone: str = None, address
     db.session.commit()
     return customer
 
-def create_leads(data: dict):
-    if not data.sender_id:
+def create_leads(sender_id, item, size):
+    if not sender_id:
         return {'error': 'sender_id parameter is required'}, 400
     
+    data= {
+        item,
+        size
+    }
     customer = Leads(**data)
     db.session.add(customer)
     db.session.commit()
