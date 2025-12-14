@@ -23,7 +23,7 @@ AUTO_REPLIES = {
     # "🚚 shipping info": "Shipping is via LBC 📦\n📍 Luzon/Visayas: 5–8 days\n📍 Mindanao: 3–5 days\n\nCOD/COP available din (with ₱500 deposit).",
     # "💬 talk to human": "Got it! We'll connect you with someone from the team asap 👍 You can continue chatting here and a real person will reply shortly.",
     "🔔 notify me": "Got it!, We will message you immediately when the item is available",
-    "📦 order Now": "Got it! Tell me the name and size(in us format). "
+    "📦 order now": "Got it! Tell me the name and size(in us format). "
 }
 
 NOTIFY_USER =[
