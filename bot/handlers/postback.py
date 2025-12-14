@@ -17,10 +17,12 @@ def handle_postback(sender_id, payload,event):
 
         set_state(sender_id, {
             "state": "awaiting_confirmation",
-            "item": order_payload["name"],
+            "item": order_payload["item"],
             "size": order_payload["size"],
             "price": order_payload["price"],
-            "url": order_payload["url"]
+            "url": order_payload["url"],
+            "item_id": order_payload["item_id"],
+            "variation_id": order_payload["variation_id"]
         })
 
         msg = (
