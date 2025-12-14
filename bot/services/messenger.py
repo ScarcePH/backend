@@ -29,12 +29,12 @@ def send_carousel(sender_id, products=None):
                         "title": "Order Now",
                         "payload": json.dumps({
                             "action": "ORDER",
-                            "item_id": item["id"],
-                            "variation_id": variation["id"],
-                            "item":item["name"],
-                            "size":variation["size"],
-                            "price":variation["price"],
-                            "url":variation["url"]
+                            "item_id": item['id'],
+                            "variation_id": variation['id'],
+                            "item": item['name'],
+                            "size": variation['size'],
+                            "price": str(variation['price']),
+                            "url": variation['url']
                         })
                     }
                 ]
