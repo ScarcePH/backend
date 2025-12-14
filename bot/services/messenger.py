@@ -31,7 +31,7 @@ def send_carousel(sender_id, products=None):
                             "action": "ORDER",
                             "item_id": item["id"],
                             "variation_id": variation["id"],
-                            "item":variation["name"],
+                            "item":item["name"],
                             "size":variation["size"],
                             "price":variation["price"],
                             "url":variation["url"]
