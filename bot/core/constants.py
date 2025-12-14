@@ -16,7 +16,7 @@ AUTO_REPLIES = {
     "💬 talk to human": "Got it! We'll connect you with someone from the team asap 👍 You can continue chatting here and a real person will reply shortly.",
     "📦 how to order": "Simple lang! 👇 \n \n Just tell me the `item` and `size`(in us). \n \n SAMPLE: Avail pa og venom size 10.5? \n",
     "🚚 shipping info": "Shipping is via J&T/JRS 📦 \n 📍 Luzon/Visayas: 5–8 days \n 📍 Mindanao: 3–5 days\n",
-    "🔔 notify me": "Got it!, We will message you immediately when the item is available",
+    "🔔 notify me": "All set. We’ll notify you as soon as the item is back.",
 }
 
 NOTIFY_USER =[
