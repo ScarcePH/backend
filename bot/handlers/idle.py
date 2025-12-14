@@ -7,8 +7,6 @@ from db.repository.inventory import search_items, get_item_sizes,get_inventory_w
 from bot.core.constants import QUICK_REPLIES,NOTIFY_USER
 
 def handle(sender_id, chat, state):
-    if(state['state']!='order'):
-        return "ok"
     analysis = get_gpt_analysis(chat)
     intent, item, size = analysis.get("intent"), analysis.get("item"), analysis.get("size")
     draft = analysis.get("reply", "Okay.")

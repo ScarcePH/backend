@@ -90,10 +90,6 @@ def get_auto_reply(message, sender_id,state):
         if keyword in message:
             if "talk to human" in keyword:
                 set_handover(sender_id)
-            if "order Now" in keyword:
-                set_state(sender_id,{
-                    "state": "order"
-                })
             if "notify me" in keyword:                
                 create_leads(sender_id,  state["item"], state["size"])
             return reply
