@@ -30,7 +30,11 @@ def send_carousel(sender_id, products=None):
                         "payload": json.dumps({
                             "action": "ORDER",
                             "item_id": item["id"],
-                            "variation_id": variation["id"]
+                            "variation_id": variation["id"],
+                            "item":variation["name"],
+                            "size":variation["size"],
+                            "price":variation["price"],
+                            "url":variation["url"]
                         })
                     }
                 ]
