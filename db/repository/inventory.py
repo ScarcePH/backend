@@ -96,7 +96,10 @@ def get_inventory_with_size(name, size):
         
     )
     if size:
-        query = query.filter(InventoryVariation.size == size)
+        query = query.filter(
+            InventoryVariation.size == size,
+            InventoryVariation.status != "sold"
+        )
 
     inventories = query.all()
 
@@ -113,7 +116,8 @@ def get_inventory_with_size(name, size):
                     "price": v.price,
                     "stock": v.stock,
                     "url": v.url,
-                    "image": v.image
+                    "image": v.image,
+                    "status": v.status
                 }
                 for v in item.variations if v.size == size 
             ],
