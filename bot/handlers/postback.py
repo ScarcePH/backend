@@ -8,6 +8,7 @@ def handle_postback(sender_id, payload,event):
         clear_handover(sender_id)
         reset_state(sender_id)
         reply(sender_id, WELCOME_MSG)
+        return "ok"
 
 
     order_payload = json.loads(event["postback"]["payload"])
