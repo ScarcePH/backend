@@ -22,8 +22,10 @@ def handle(sender_id, chat, state):
         "payment_method": "gcash"
     })
 
+    to_pay = "1000" if state['status'] == 'preorder' else state['price']
+
     reply(sender_id,
-        f"Please deposit ₱{state['price']} and send a screenshot.\n\n"
+        f"Please deposit ₱{to_pay} and send a screenshot.\n\n"
         "Gcash: 09352894676 – Marion Rosete",
         None
     )

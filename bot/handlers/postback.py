@@ -23,13 +23,18 @@ def handle_postback(sender_id, payload,event):
             "price": order_payload["price"],
             "url": order_payload["url"],
             "item_id": order_payload["item_id"],
-            "variation_id": order_payload["variation_id"]
+            "variation_id": order_payload["variation_id"],
+            "status": order_payload['status']
         })
+        status = "📦PREORDER \n 🔒 DP ₱1000 required to process order. the rest upon arrival" if order_payload["status"] == 'preorder' else  order_payload["status"]
 
         msg = (
-            f"Great! We have {order_payload['item']} (Size {order_payload['size']})us for only ₱{order_payload['price']}.\n"
+            f"{order_payload['item']} \n"
+            f"(📏 Size: {order_payload['size']})us \n"
+            f"🏷️ ₱{order_payload['price']} only. \n"
+            f"{status} \n"
             f"Please check details here: {order_payload['url']}\n"
-            "Would you like to reserve this pair? (Yes / No)"
+            "Would you like to order this pair? (Yes / No)"
         )
         
         reply(sender_id,msg,None)

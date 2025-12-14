@@ -3,20 +3,18 @@ from bot.core.constants import BOT_TAG, QUICK_REPLIES
 import json
 
 def reply(sender_id, message, quick_replies=QUICK_REPLIES):
-    print("SENDING TEXT")
     send_text_message(sender_id, f"{message}\n{BOT_TAG}", quick_replies)
 
 
 
 def send_carousel(sender_id, products=None):
-    print("SENDING CAROUSEL")
     items = []
     for item in products:
         print("[ITEM]:",item)
         for variation in item['variations']:
             carousel={
                 "title":item['name'],
-                "subtitle": f"{variation['condition']} | Sizes: {variation['size']} | ₱{variation['price']}",
+                "subtitle": f"{variation['status']} | {variation['condition']} | Size: {variation['size']} | ₱{variation['price']}",
                 "image_url":variation['image'],
                 "buttons":[
                     {
@@ -34,7 +32,8 @@ def send_carousel(sender_id, products=None):
                             "item": item['name'],
                             "size": variation['size'],
                             "price": str(variation['price']),
-                            "url": variation['url']
+                            "url": variation['url'],
+                            "status": variation['status']
                         })
                     }
                 ]
