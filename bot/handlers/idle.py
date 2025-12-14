@@ -7,6 +7,8 @@ from db.repository.inventory import search_items, get_item_sizes,get_inventory_w
 from bot.core.constants import QUICK_REPLIES,NOTIFY_USER
 
 def handle(sender_id, chat, state):
+    if(state['state']!='order'):
+        return "ok"
     analysis = get_gpt_analysis(chat)
     intent, item, size = analysis.get("intent"), analysis.get("item"), analysis.get("size")
     draft = analysis.get("reply", "Okay.")
@@ -26,14 +28,14 @@ def handle(sender_id, chat, state):
         if stocks.get("found"):
             reply(sender_id, f"We have {item} in size {size}us")
             send_carousel(sender_id, stocks["items"])
-            return "ok", 200
+            return "ok"
         not_available = f"We Currently Don't have {item} in size {size}us.\n Would like me to notify you when it is available? "
         reply(sender_id, not_available , NOTIFY_USER)
         set_state(sender_id, {
             "size": size,
             "item": item
         })
-        return "ok", 200
+        return "ok"
     
     if not size:
         set_state(sender_id, {
@@ -42,4 +44,4 @@ def handle(sender_id, chat, state):
         })
 
         reply(sender_id, f"What size for '{item}'?")
-        return "ok", 200
+        return "ok"

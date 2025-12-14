@@ -3,7 +3,7 @@ import os
 import re
 from bot.utils.gpt_client import call_gpt   
 from bot.core.constants import AUTO_REPLIES
-from bot.state.manager import set_handover
+from bot.state.manager import set_handover,set_state
 from db.repository.customer import create_leads
 
 SYSTEM_PROMPT_ANALYSIS = os.environ.get("SYSTEM_PROMPT_ANALYSIS")
@@ -90,7 +90,11 @@ def get_auto_reply(message, sender_id,state):
         if keyword in message:
             if "talk to human" in keyword:
                 set_handover(sender_id)
-            if "notify me when available":                
+            if "order Now" in keyword:
+                set_state(sender_id,{
+                    "state": "order"
+                })
+            if "notify me" in keyword:                
                 create_leads(sender_id,  state["item"], state["size"])
             return reply
     return None
