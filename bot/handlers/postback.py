@@ -27,7 +27,7 @@ def handle_postback(sender_id, payload,event):
         })
 
         msg = (
-            f"Great! We have {order_payload['name']} (Size {order_payload['size']})us for only ₱{order_payload['price']}.\n"
+            f"Great! We have {order_payload['item']} (Size {order_payload['size']})us for only ₱{order_payload['price']}.\n"
             f"Please check details here: {order_payload['url']}\n"
             "Would you like to reserve this pair? (Yes / No)"
         )
