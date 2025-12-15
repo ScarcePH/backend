@@ -4,6 +4,7 @@ from bot.core.constants import CONFIRM_HEADER
 from db.repository.order import save_order
 
 def repeat_customer_confirm(sender_id,chat,state):
+    print("[STATE]:", state)
     res = chat.strip()
     customer_name = state['customer_name']
     customer_address = state['customer_address']
@@ -35,7 +36,7 @@ def repeat_customer_confirm(sender_id,chat,state):
         "customer_id": state['customer_id'],
         "inventory_id": state['inventory_id'],
         "variation_id": state["variation_id"],
-        "payment_ss": state["verify_payment"]
+        "payment_ss": state["payment_ss"]
     }
     save_order(order)
     reset_state(sender_id)

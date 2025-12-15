@@ -3,10 +3,6 @@ from bot.state.manager import set_state
 from db.repository.customer import get_customer
 
 def handle(sender_id, screenshot, state):
-    set_state(sender_id, {
-        **state,
-        "verify_payment": screenshot
-    })
     customer = get_customer(sender_id)
 
     if customer:
@@ -25,7 +21,8 @@ def handle(sender_id, screenshot, state):
             "customer_name":name,
             "customer_address":address,
             "customer_phone":phone,
-            "customer_id": customer.id
+            "customer_id": customer.id,
+            "payment_ss": screenshot
         })
         return reply(sender_id,msg,None)
     set_state(sender_id, {**state,

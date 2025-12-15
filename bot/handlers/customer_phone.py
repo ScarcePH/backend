@@ -5,8 +5,8 @@ from db.repository.customer import save_customer,get_customer,update_customer
 from db.repository.order import save_order
 
 def handle(sender_id, chat, state):
+    print("[STATE]:", state)
     phone = chat.strip()
-
     order = {
         "item": state["item"],
         "size": state["size"],
@@ -41,7 +41,7 @@ def handle(sender_id, chat, state):
         "customer_id": customer.id,
         "inventory_id": state['inventory_id'],
         "variation_id": state["variation_id"],
-        "payment_ss": state["verify_payment"]
+        "payment_ss": state["payment_ss"]
     }
     save_order(order)
 
