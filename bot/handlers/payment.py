@@ -15,7 +15,7 @@ def handle_payment_method(sender_id, chat_lower, state):
     })
 
     reply(sender_id,
-        f"Please deposit ₱{amount} and send a screenshot.\n\n"
+        f"To proceed with your order, please deposit ₱{amount} and send a screenshot of the payment for verification.\n\n"
         "Gcash: 09352894676 – Marion Rosete",
         None
     )

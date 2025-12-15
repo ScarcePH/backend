@@ -17,8 +17,15 @@ AUTO_REPLIES = {
     "📦 how to order": "Simple lang! 👇 \n \n Just tell me the `item` and `size`(in us). \n \n SAMPLE: Avail pa og venom size 10.5? \n",
     "🚚 shipping info": "Shipping is via J&T/JRS 📦 \n 📍 Luzon/Visayas: 5–8 days \n 📍 Mindanao: 3–5 days\n",
     "🔔 notify me": "All set. We’ll notify you as soon as the item is back.",
+    "change shipment info": "Alright We will change your shipment info",
+    "use this address": "All set! We’re validating your order now. We’ll message you shortly once it’s confirmed."
 }
 
 NOTIFY_USER =[
     f"🔔 Notify me"
+]
+
+SAVED_ADDRESS=[
+    "Use this address",
+    "Change Shipment info"
 ]
