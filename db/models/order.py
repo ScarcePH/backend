@@ -13,7 +13,7 @@ class Order(db.Model):
         db.Integer, db.ForeignKey("inventory.id"), nullable=False
     )
 
-    inventory_variation_id = db.Column(
+    variation_id = db.Column(
         db.Integer, db.ForeignKey("inventory_variations.id"), nullable=False
     )
 
