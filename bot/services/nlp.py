@@ -5,6 +5,7 @@ from bot.utils.gpt_client import call_gpt
 from bot.core.constants import AUTO_REPLIES
 from bot.state.manager import set_handover,set_state
 from db.repository.customer import create_leads
+from bot.services.confirm_order import confirm_order
 
 SYSTEM_PROMPT_ANALYSIS = os.environ.get("SYSTEM_PROMPT_ANALYSIS")
 
@@ -92,5 +93,7 @@ def get_auto_reply(message, sender_id,state):
                 set_handover(sender_id)
             if "notify me" in keyword:                
                 create_leads(sender_id,  state["item"], state["size"])
+            if "use this address" in keyword:
+                confirm_order(sender_id)
             return reply
     return None
