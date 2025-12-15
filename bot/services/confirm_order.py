@@ -4,7 +4,7 @@ from db.repository.order import save_order
 from bot.services.messenger import reply
 
 def confirm_order(sender_id):
-    state = get_state()
+    state = get_state(sender_id)
 
     msg = (
         f"{CONFIRM_HEADER}"
