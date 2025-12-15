@@ -30,14 +30,15 @@ def handle(sender_id, chat, state):
         customer = save_customer(customer_payload)
         print(f"[CUSTOMER]:{customer.id}")
 
-    update_customer(
+    customer = update_customer(
         sender_id,
         order["customer_name"],
         order["customer_phone"],
         order["customer_address"]
     )
     order = {
-        "customer_id": state['customer_id'],
+
+        "customer_id": customer.id,
         "item_id": state['inventory_id'],
         "variation_id": state["inventory_variation_id"],
         "payment_ss": state["verify_payment"]
