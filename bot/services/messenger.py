@@ -29,7 +29,7 @@ def send_carousel(sender_id, products=None):
                             "action": "ORDER",
                             "inventory_id": inventory['id'],
                             "variation_id": variation['id'],
-                            "inventory": inventory['name'],
+                            "item": inventory['name'],
                             "size": variation['size'],
                             "price": str(variation['price']),
                             "url": variation['url'],
