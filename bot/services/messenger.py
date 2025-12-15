@@ -9,11 +9,11 @@ def reply(sender_id, message, quick_replies=QUICK_REPLIES):
 
 def send_carousel(sender_id, products=None):
     items = []
-    for item in products:
-        print("[ITEM]:",item)
-        for variation in item['variations']:
+    for inventory in products:
+        print("[ITEM]:",inventory)
+        for variation in inventory['variations']:
             carousel={
-                "title":item['name'],
+                "title":inventory['name'],
                 "subtitle": f"{variation['status']} | {variation['condition']} | Size: {variation['size']} | ₱{variation['price']}",
                 "image_url":variation['image'],
                 "buttons":[
@@ -27,9 +27,9 @@ def send_carousel(sender_id, products=None):
                         "title": "Order Now",
                         "payload": json.dumps({
                             "action": "ORDER",
-                            "item_id": item['id'],
+                            "inventory_id": inventory['id'],
                             "variation_id": variation['id'],
-                            "item": item['name'],
+                            "inventory": inventory['name'],
                             "size": variation['size'],
                             "price": str(variation['price']),
                             "url": variation['url'],

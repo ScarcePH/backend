@@ -20,9 +20,9 @@ def create_inventory():
 
 @inventory_bp.route("/inventory/variation", methods=["POST"])
 def create_variation():
-    item_id= request.args.get('item_id')
+    inventory_id= request.args.get('inventory_id')
     data = request.json
-    save_variation(item_id, data)
+    save_variation(inventory_id, data)
     return jsonify({"data": data , "message": "Variation created"}),201
 
 @inventory_bp.route("/get-all-inventory", methods=["GET"])

@@ -22,7 +22,7 @@ def handle_postback(sender_id, payload,event):
             "size": order_payload["size"],
             "price": order_payload["price"],
             "url": order_payload["url"],
-            "item_id": order_payload["item_id"],
+            "inventory_id": order_payload["inventory_id"],
             "variation_id": order_payload["variation_id"],
             "status": order_payload['status']
         })

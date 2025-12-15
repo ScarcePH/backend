@@ -1,6 +1,7 @@
 from bot.services.messenger import reply
 from bot.state.manager import set_state,reset_state
 from bot.core.constants import CONFIRM_HEADER
+from db.repository.order import save_order
 
 def repeat_customer_confirm(sender_id,chat,state):
     res = chat.strip()
@@ -30,5 +31,12 @@ def repeat_customer_confirm(sender_id,chat,state):
         f"Phone: {customer_phone}\n\n"
         "We'll verify your payment and contact you shortly."
     )
+    order = {
+        "customer_id": state['customer_id'],
+        "inventory_id": state['inventory_id'],
+        "variation_id": state["variation_id"],
+        "payment_ss": state["verify_payment"]
+    }
+    save_order(order)
     reset_state(sender_id)
     return reply(sender_id, msg)

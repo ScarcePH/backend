@@ -39,8 +39,8 @@ def handle(sender_id, chat, state):
     order = {
 
         "customer_id": customer.id,
-        "item_id": state['inventory_id'],
-        "variation_id": state["inventory_variation_id"],
+        "inventory_id": state['inventory_id'],
+        "variation_id": state["variation_id"],
         "payment_ss": state["verify_payment"]
     }
     save_order(order)

@@ -25,6 +25,7 @@ def handle(sender_id, screenshot, state):
             "customer_name":name,
             "customer_address":address,
             "customer_phone":phone,
+            "customer_id": customer.id
         })
         return reply(sender_id,msg,None)
     set_state(sender_id, {**state,
