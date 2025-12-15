@@ -2,6 +2,7 @@ from bot.services.messenger import reply
 from bot.state.manager import reset_state
 from bot.core.constants import CONFIRM_HEADER
 from db.repository.customer import save_customer,get_customer,update_customer
+from db.repository.order import save_order
 
 def handle(sender_id, chat, state):
     phone = chat.strip()
@@ -35,6 +36,13 @@ def handle(sender_id, chat, state):
         order["customer_phone"],
         order["customer_address"]
     )
+    order = {
+        "customer_id": state['customer_id'],
+        "item_id": state['inventory_id'],
+        "variation_id": state["inventory_variation_id"],
+        "payment_ss": state["verify_payment"]
+    }
+    save_order(order)
 
     msg = (
         f"{CONFIRM_HEADER}"
