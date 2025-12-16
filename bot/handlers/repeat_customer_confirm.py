@@ -19,10 +19,10 @@ def repeat_customer_confirm(sender_id,chat,state):
         )
         return reply(sender_id,msg, SAVED_ADDRESS)
     
-    if str(res).lower() in ["no", "n", "change shipment info"]:
+    if str(res).lower() in ["no", "n", "change address"]:
         set_state(sender_id, {**state,
             "state": "awaiting_customer_name",
         })
-        return reply(sender_id, "Great! To proceed with editing your shipment info, please provide your full name.", None)
+        return reply(sender_id, "We will start with your name, please provide your full name.", None)
     
     return confirm_order(sender_id)
