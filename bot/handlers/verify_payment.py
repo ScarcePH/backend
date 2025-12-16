@@ -1,12 +1,9 @@
 from bot.services.messenger import reply
 from bot.state.manager import set_state
 from db.repository.customer import get_customer
+from bot.core.constants import SAVED_ADDRESS
 
 def handle(sender_id, screenshot, state):
-    set_state(sender_id, {
-        **state,
-        "verify_payment": screenshot
-    })
     customer = get_customer(sender_id)
 
     if customer:
@@ -14,21 +11,23 @@ def handle(sender_id, screenshot, state):
         address = customer.address
         phone = customer.phone
 
-        msg=("We have your previous shipping address before \n"
+        msg=("We have your most recent Shipment info.\n"
         f"Name: {name}\n"
         f"address:{address}\n"
         f"phone:{phone}\n"
-        "Do you want to continue with this address?(yes/no)")
+        "Would you like to use this address for your order?")
 
         set_state(sender_id,{**state,
             "state":"repeat_customer_confirm",
             "customer_name":name,
             "customer_address":address,
             "customer_phone":phone,
+            "customer_id": customer.id,
+            "payment_ss": screenshot
         })
-        return reply(sender_id,msg,None)
+        return reply(sender_id,msg, SAVED_ADDRESS)
     set_state(sender_id, {**state,
         "state": "awaiting_customer_name",
     })
-    return reply(sender_id, "Great! Please provide your full name:", None)
+    return reply(sender_id, "Great! To proceed with shipping, please provide your full name.", None)
 

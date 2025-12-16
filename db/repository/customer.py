@@ -1,4 +1,5 @@
 from db.models import Customers
+from db.models import Leads
 from db.database import db
 
 def save_customer(data: dict):
@@ -31,3 +32,17 @@ def update_customer(sender_id: str, name: str = None, phone: str = None, address
 
     db.session.commit()
     return customer
+
+def create_leads(sender_id, item, size):
+    if not sender_id:
+        return {'error': 'sender_id parameter is required'}, 400
+    
+    data= {
+        "sender_id":sender_id,
+        "name":item,
+        "size": size
+    }
+    lead = Leads(**data)
+    db.session.add(lead)
+    db.session.commit()
+    return lead

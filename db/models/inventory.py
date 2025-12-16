@@ -1,4 +1,5 @@
 from db.database import db
+from bot.core.constants import SCARCE_IMG
 
 class Inventory(db.Model):
     __tablename__ = "inventory"
@@ -7,14 +8,15 @@ class Inventory(db.Model):
 
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
-    condition = db.Column(db.String, nullable=False)
-    size = db.Column(db.String, nullable=False)
-    price = db.Column(db.Integer, nullable=False)
-    url = db.Column(db.String, nullable=False)
-
-    status = db.Column(db.String, default="available", index=True)
 
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     order = db.relationship("Order", back_populates="inventory_item", uselist=False)
+
+    variations = db.relationship(
+        "InventoryVariation",
+        backref="inventory",
+        cascade="all, delete-orphan",
+        lazy="dynamic"
+    )

@@ -22,6 +22,10 @@ def webhook():
             print(f"[EVENT]: {event}", flush=True)
             sender_id = event["sender"]["id"]
 
+            ## DEVELOPER MODE
+            if str(sender_id)!="7517723111585024":
+                return {"status": "ok"} 
+
             # prevent duplicate messages
             mid = event.get("message", {}).get("mid")
             if mid:
@@ -32,7 +36,7 @@ def webhook():
 
             # postback
             if "postback" in event:
-                handle_postback(sender_id, event["postback"].get("payload"))
+                handle_postback(sender_id, event["postback"].get("payload"),event)
                 return {"status": "ok"}
 
             if is_in_handover(sender_id):

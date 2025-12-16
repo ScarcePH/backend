@@ -2,19 +2,11 @@ from bot.services.messenger import reply
 from bot.state.manager import reset_state
 from bot.core.constants import CONFIRM_HEADER
 from db.repository.customer import save_customer,get_customer,update_customer
+from db.repository.order import save_order
 
 def handle(sender_id, chat, state):
+    print("[STATE]:", state)
     phone = chat.strip()
-
-    order = {
-        "item": state["item"],
-        "size": state["size"],
-        "price": state["price"],
-        "customer_name": state["customer_name"],
-        "customer_phone": phone,
-        "customer_address": state["customer_address"],
-        "url": state["url"]
-    }
 
     reset_state(sender_id)
 
@@ -29,21 +21,29 @@ def handle(sender_id, chat, state):
         customer = save_customer(customer_payload)
         print(f"[CUSTOMER]:{customer.id}")
 
-    update_customer(
+    customer = update_customer(
         sender_id,
-        order["customer_name"],
-        order["customer_phone"],
-        order["customer_address"]
+        state["customer_name"],
+        phone,
+        state["customer_address"]
     )
+    order = {
+
+        "customer_id": customer.id,
+        "inventory_id": state['inventory_id'],
+        "variation_id": state["variation_id"],
+        "payment_ss": state["payment_ss"]
+    }
+    save_order(order)
 
     msg = (
         f"{CONFIRM_HEADER}"
-        f"Item: {order['item']}\n"
-        f"Size: {order['size']}\n"
-        f"Price: ₱{order['price']}\n"
-        f"Name: {order['customer_name']}\n"
-        f"Phone: {order['customer_phone']}\n\n"
-        f"Address: {order['customer_address']}\n\n"
+        f"Item: {state['item']}\n"
+        f"Size: {state['size']}\n"
+        f"Price: ₱{state['price']}\n"
+        f"Name: {state['customer_name']}\n"
+        f"Phone: {phone}\n\n"
+        f"Address: {state['customer_address']}\n\n"
         "We'll verify your payment and contact you shortly."
     )
 
