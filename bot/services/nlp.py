@@ -100,6 +100,6 @@ def get_auto_reply(message, sender_id,state):
                 set_state(sender_id, {**state,
                     "state": "awaiting_customer_name",
                 })
-                messender_reply(sender_id, "We will start with your name, please provide your full name.", None)
+                messender_reply(sender_id, "Alright We will change your address for your shipment.", None)
             return reply
     return None
