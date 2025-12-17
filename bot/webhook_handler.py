@@ -52,7 +52,7 @@ def webhook():
             if not is_echo and "message" in event:
                 msg = event["message"]
                 if "text" in msg:
-                    # handle_message(sender_id, msg["text"].strip())
+                    handle_message(sender_id, msg["text"].strip())
                     return {"status": "ok"}
 
               
@@ -61,7 +61,7 @@ def webhook():
                     if attachment["type"] == "image":
                         state = get_state(sender_id)
                         if state.get("state") == 'handle_verify_payment':
-                            # handle_message(sender_id, attachment["payload"]["url"])
+                            handle_message(sender_id, attachment["payload"]["url"])
                             return {"status": "ok"}
                         else:
                             reply(sender_id, f"{IMAGE_SENT_MSG}")
