@@ -30,4 +30,5 @@ class Order(db.Model):
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     customer = db.relationship("Customers", backref="orders")
-    inventory_item = db.relationship("Inventory", back_populates="order")
+    inventory = db.relationship("Inventory", backref="order")
+    variation = db.relationship("InventoryVariation", backref="orders")
