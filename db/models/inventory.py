@@ -12,7 +12,7 @@ class Inventory(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
-    order = db.relationship("Order", back_populates="inventory_item", uselist=False)
+    # order = db.relationship("Order", back_populates="inventory_item", uselist=False)
 
     variations = db.relationship(
         "InventoryVariation",

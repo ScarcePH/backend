@@ -7,38 +7,47 @@ def reply(sender_id, message, quick_replies=QUICK_REPLIES):
 
 
 
-def send_carousel(sender_id, products=None):
+def send_carousel(sender_id, products=None, is_my_order=False):
     items = []
-    for inventory in products:
-        print("[ITEM]:",inventory)
-        for variation in inventory['variations']:
+    if(is_my_order):
+        for order in products:
             carousel={
-                "title":inventory['name'],
-                "subtitle": f"{variation['status']} | {variation['condition']} | Size: {variation['size']} | ₱{variation['price']}",
-                "image_url":variation['image'],
-                "buttons":[
-                    {
-                        "type": "web_url",
-                        "title": "View",
-                        "url": variation['url']
-                    },
-                    {
-                        "type": "postback",
-                        "title": "Order Now",
-                        "payload": json.dumps({
-                            "action": "ORDER",
-                            "inventory_id": inventory['id'],
-                            "variation_id": variation['id'],
-                            "item": inventory['name'],
-                            "size": variation['size'],
-                            "price": str(variation['price']),
-                            "url": variation['url'],
-                            "status": variation['status']
-                        })
-                    }
-                ]
+                "title": str(order["status"]).upper(),
+                "subtitle": f"{order['inventory']['name']} | {order['variation']['size']}",
+                "image_url": order['variation']['image']
             }
             items.append(carousel)
+    else:
+        for inventory in products:
+            print("[ITEM]:",inventory)
+            for variation in inventory['variations']:
+                carousel={
+                    "title":inventory['name'],
+                    "subtitle": f"{variation['status']} | {variation['condition']} | Size: {variation['size']} | ₱{variation['price']}",
+                    "image_url":variation['image'],
+                    "buttons":[
+                        {
+                            "type": "web_url",
+                            "title": "View",
+                            "url": variation['url']
+                        },
+                        {
+                            "type": "postback",
+                            "title": "Order Now",
+                            "payload": json.dumps({
+                                "action": "ORDER",
+                                "inventory_id": inventory['id'],
+                                "variation_id": variation['id'],
+                                "item": inventory['name'],
+                                "size": variation['size'],
+                                "price": str(variation['price']),
+                                "url": variation['url'],
+                                "status": variation['status']
+                            })
+                        }
+                    ]
+                }
+                items.append(carousel)
 
     print(f"[items]:", items)
     message = {

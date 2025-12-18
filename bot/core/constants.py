@@ -10,6 +10,7 @@ QUICK_REPLIES = [
     "💬 Talk to Human",
     "📦 How to Order",
     "🚚 Shipping Info",
+    "🛒 My Order"
 ]
 
 AUTO_REPLIES = {
@@ -18,7 +19,8 @@ AUTO_REPLIES = {
     "🚚 shipping info": "Shipping is via J&T/JRS 📦 \n 📍 Luzon/Visayas: 5–8 days \n 📍 Mindanao: 3–5 days\n",
     "🔔 notify me": "All set. We’ll notify you as soon as the item is back.",
     "change address": " We will start with your name, please provide your full name",
-    "use this address": "We’re validating your order now. We’ll message you shortly once it’s confirmed."
+    "use this address": "We’re validating your order now. We’ll message you shortly once it’s confirmed.",
+    "🛒 my order" : "Fetching order"
 }
 
 NOTIFY_USER =[
@@ -27,5 +29,5 @@ NOTIFY_USER =[
 
 SAVED_ADDRESS=[
     "Use this address",
-    "Change address"
+    "Change address",
 ]
