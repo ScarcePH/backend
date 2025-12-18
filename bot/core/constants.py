@@ -10,6 +10,7 @@ QUICK_REPLIES = [
     "💬 Talk to Human",
     "📦 How to Order",
     "🚚 Shipping Info",
+    "🛒 My Order"
 ]
 
 AUTO_REPLIES = {
@@ -29,5 +30,4 @@ NOTIFY_USER =[
 SAVED_ADDRESS=[
     "Use this address",
     "Change address",
-    "🛒 My Order"
 ]
