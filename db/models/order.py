@@ -17,13 +17,8 @@ class Order(db.Model):
         db.Integer, db.ForeignKey("inventory_variations.id"), nullable=False
     )
 
+    #pending, confirmed, cancelled
     status = db.Column(db.String, default="pending", index=True)
-
-    payment_method = db.Column(db.String, default="gcash")
-    payment_reference = db.Column(db.String)
-    payment_verified = db.Column(db.Boolean, default=False)
-    payment_ss = db.Column(db.String)
-
     
 
     created_at = db.Column(db.DateTime, server_default=db.func.now())
@@ -32,3 +27,4 @@ class Order(db.Model):
     customer = db.relationship("Customers", backref="orders")
     inventory = db.relationship("Inventory", backref="order")
     variation = db.relationship("InventoryVariation", backref="orders")
+    payment = db.relationship("Payment", backref="orders")
