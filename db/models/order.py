@@ -17,6 +17,10 @@ class Order(db.Model):
         db.Integer, db.ForeignKey("inventory_variations.id"), nullable=False
     )
 
+    payment_id = db.Column(
+        db.Integer, db.ForeignKey("payments.id"), nullable=True
+    )
+
     #pending, confirmed, cancelled
     status = db.Column(db.String, default="pending", index=True)
     

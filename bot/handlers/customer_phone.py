@@ -3,6 +3,7 @@ from bot.state.manager import reset_state
 from bot.core.constants import CONFIRM_HEADER
 from db.repository.customer import save_customer,get_customer,update_customer
 from db.repository.order import save_order
+from db.repository.payment import save_payment
 
 def handle(sender_id, chat, state):
     print("[STATE]:", state)
@@ -28,13 +29,17 @@ def handle(sender_id, chat, state):
         state["customer_address"]
     )
     order = {
-
         "customer_id": customer.id,
         "inventory_id": state['inventory_id'],
         "variation_id": state["variation_id"],
         "payment_ss": state["payment_ss"]
     }
     save_order(order)
+    payment = {
+        "payment_ss": state['payment_ss'],
+        "total_amount": state['price'],
+    }
+    save_payment(payment)
 
     msg = (
         f"{CONFIRM_HEADER}"
