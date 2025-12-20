@@ -4,6 +4,7 @@ from .order import Order
 from .inventory_variation import InventoryVariation
 from .leads import Leads
 from .payment import Payment
+from .shipment import Shipment
 
 __all__ = [
     "Customers",
@@ -11,5 +12,6 @@ __all__ = [
     "Order",
     "InventoryVariation",
     "Leads",
-    "Payment"
+    "Payment",
+    "Shipment",
 ]

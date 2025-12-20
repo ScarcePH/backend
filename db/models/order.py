@@ -21,6 +21,7 @@ class Order(db.Model):
         db.Integer, db.ForeignKey("payments.id"), nullable=True
     )
 
+
     #pending, confirmed, cancelled
     status = db.Column(db.String, default="pending", index=True)
     
@@ -32,3 +33,4 @@ class Order(db.Model):
     inventory = db.relationship("Inventory", backref="order")
     variation = db.relationship("InventoryVariation", backref="orders")
     payment = db.relationship("Payment", backref="orders")
+    shipment = db.relationship("Shipment", backref="order", uselist=False)
