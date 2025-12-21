@@ -112,6 +112,6 @@ def get_auto_reply(message, sender_id,state):
                     send_carousel(sender_id, order, is_my_order=True)
                 else:
                     messender_reply(sender_id, "You don’t have any active orders.")
-                return None
+                return 'my order'
             return reply
     return None

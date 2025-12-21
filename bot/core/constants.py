@@ -21,7 +21,7 @@ AUTO_REPLIES = {
     "🔔 notify me": "All set. We’ll notify you as soon as the item is back.",
     "change address": " We will start with your name, please provide your full name",
     "use this address": "We’re validating your order now. We’ll message you shortly once it’s confirmed.",
-    "🛒 my order" : "Fetching order"
+    "🛒 my order" : "Let me know how Can I help you"
 }
 
 NOTIFY_USER =[
