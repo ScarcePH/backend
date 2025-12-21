@@ -16,7 +16,7 @@ def send_carousel(sender_id, products=None, is_my_order=False):
                 buttons.append({
                     {
                         "type": "web_url",
-                        "title": "View",
+                        "title": "🔍 Track",
                         "url": TRACK + order['shipment']['tracking']
                     }
                 })
