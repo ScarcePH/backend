@@ -98,6 +98,7 @@ def get_auto_reply(message, sender_id,state):
                 create_leads(sender_id,  state["item"], state["size"])
             if "use this address" in keyword:
                 confirm_order(sender_id)
+                return None
             if "change address" in keyword:
                 set_state(sender_id, {**state,
                     "state": "awaiting_customer_name",

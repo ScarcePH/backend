@@ -14,11 +14,9 @@ def send_carousel(sender_id, products=None, is_my_order=False):
             buttons = []
             if order.get('shipment', {}).get('tracking'):
                 buttons.append({
-                    {
-                        "type": "web_url",
-                        "title": "🔍 Track",
-                        "url": TRACK + order['shipment']['tracking']
-                    }
+                    "type": "web_url",
+                    "title": "Track Shipment",
+                    "url": TRACK + order['shipment']['tracking']
                 })
             carousel={
                 "title": f"ORDER: { str(order['status']).upper() }",
