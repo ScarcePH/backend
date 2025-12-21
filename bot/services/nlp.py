@@ -105,13 +105,11 @@ def get_auto_reply(message, sender_id,state):
                 })
                 messender_reply(sender_id, "Alright We will change your address for your shipment.", None)
             if "my order" in keyword:
-               
                 order = get_order(sender_id)
                 if(order):
                     messender_reply(sender_id, "Here’s your current order.")
                     send_carousel(sender_id, order, is_my_order=True)
                 else:
                     messender_reply(sender_id, "You don’t have any active orders.")
-                return 'my order'
             return reply
     return None

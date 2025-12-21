@@ -35,8 +35,6 @@ def handle_message(sender_id, chat):
 
     auto = get_auto_reply(chat_lower, sender_id, state)
     if auto:
-        if( auto == 'my order'):
-            return 'ok', 200
         reply(sender_id, auto)
         return "ok",200
 

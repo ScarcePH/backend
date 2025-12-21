@@ -21,10 +21,9 @@ def send_carousel(sender_id, products=None, is_my_order=False):
             carousel={
                 "title": f"{ str(order['status']).upper()} ORDER",
                 "subtitle": (
-                    f"{order['inventory']['name']} | "
-                    f"Size: {order['variation']['size']} | "
+                    f"{order['inventory']['name']} ({order['variation']['size']}us) | "
                     f"Balance: ₱{order['payment']['to_settle']} | "
-                    f"Shipment:" f"{order.get('shipment', {}).get('status', 'N/A')}"
+                    f"{order.get('shipment', {}).get('status', 'N/A')}"
                 ),
                 "image_url": order['variation']['image'],
                 "buttons": buttons
