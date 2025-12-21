@@ -1,5 +1,5 @@
 from bot.services.send_text import send_text_message, send_template_message
-from bot.core.constants import BOT_TAG, QUICK_REPLIES
+from bot.core.constants import BOT_TAG, QUICK_REPLIES, TRACK
 import json
 
 def reply(sender_id, message, quick_replies=QUICK_REPLIES):
@@ -11,10 +11,25 @@ def send_carousel(sender_id, products=None, is_my_order=False):
     items = []
     if(is_my_order):
         for order in products:
+            buttons = []
+            if order.get('shipment', {}).get('tracking'):
+                buttons.append({
+                    {
+                        "type": "web_url",
+                        "title": "View",
+                        "url": TRACK + order['shipment']['tracking']
+                    }
+                })
             carousel={
-                "title": str(order["status"]).upper(),
-                "subtitle": f"{order['inventory']['name']} | {order['variation']['size']}",
-                "image_url": order['variation']['image']
+                "title": f"ORDER: { str(order['status']).upper() }",
+                "subtitle": (
+                    f"{order['inventory']['name']} \n"
+                    f"Size: {order['variation']['size']} \n"
+                    f"Balance: ₱{order['payment']['to_settle']} \n"
+                    f"Shipment:" f"{order.get('shipment', {}).get('status', 'N/A')} \n"
+                ),
+                "image_url": order['variation']['image'],
+                "buttons": buttons
             }
             items.append(carousel)
     else:

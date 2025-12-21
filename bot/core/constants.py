@@ -5,6 +5,7 @@ ERROR_MSG = "I didn't catch that. What item are you looking for?"
 CONFIRM_HEADER = "All set!\n\n🛒 **Order Reserved**\n"
 IMAGE_SENT_MSG = "I can’t read images. If you're looking for a pair. Type the item name and size so I can check the availability for you."
 SCARCE_IMG = "https://scontent.fceb10-1.fna.fbcdn.net/v/t39.30808-6/457018195_122193654590162841_769628168669116497_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=GHFZatA3m88Q7kNvwGmVwni&_nc_oc=AdkeMTObOZvUGk4CFeAX15UZMtKoOZfFO7MmkrAqyDzzLCbYQmecKf4qT6U-h_cJGqw&_nc_zt=23&_nc_ht=scontent.fceb10-1.fna&_nc_gid=ofzqrM3DA1DN5fZguo0jOw&oh=00_Afkjp7FezYmvxJUzNrxQfPGZTdkEJgpda9AluXFO5HsxAw&oe=693FEF8C"
+TRACK = "https://parcelsapp.com/en/tracking/"
 
 QUICK_REPLIES = [
     "💬 Talk to Human",
