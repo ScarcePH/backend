@@ -24,10 +24,11 @@ def confirm_order(sender_id):
         "inventory_id": state['inventory_id'],
         "variation_id": state["variation_id"],
     }
-    save_order(order)
+    order = save_order(order)
     payment = {
         "payment_ss": state['payment_ss'],
         "total_amount": state['price'],
+        "order_id": order.id
     }
     save_payment(payment)
     reset_state(sender_id)

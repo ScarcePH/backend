@@ -32,12 +32,12 @@ def handle(sender_id, chat, state):
         "customer_id": customer.id,
         "inventory_id": state['inventory_id'],
         "variation_id": state["variation_id"],
-        "payment_ss": state["payment_ss"]
     }
-    save_order(order)
+    order = save_order(order)
     payment = {
         "payment_ss": state['payment_ss'],
         "total_amount": state['price'],
+        "order_id": order.id
     }
     save_payment(payment)
 
