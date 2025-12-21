@@ -48,7 +48,7 @@ def get_order(sender_id):
                 "id": order.payment.id,
                 "payment_method": order.payment.payment_method,
                 "to_settle": order.payment.total_amount - order.payment.received_amount,
-            } if order.shipment else None,
+            } if order.payment else None,
             "shipment": {
                 "id": order.shipment.id,
                 "carrier": order.shipment.carrier,

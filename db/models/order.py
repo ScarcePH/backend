@@ -17,11 +17,6 @@ class Order(db.Model):
         db.Integer, db.ForeignKey("inventory_variations.id"), nullable=False
     )
 
-    payment_id = db.Column(
-        db.Integer, db.ForeignKey("payments.id"), nullable=True
-    )
-
-
     #pending, confirmed, cancelled
     status = db.Column(db.String, default="pending", index=True)
     
@@ -32,5 +27,5 @@ class Order(db.Model):
     customer = db.relationship("Customers", backref="orders")
     inventory = db.relationship("Inventory", backref="order")
     variation = db.relationship("InventoryVariation", backref="orders")
-    payment = db.relationship("Payment", backref="orders")
+    payment = db.relationship("Payment", backref="orders", uselist=False)
     shipment = db.relationship("Shipment", backref="order", uselist=False)
