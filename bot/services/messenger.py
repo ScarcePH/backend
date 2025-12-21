@@ -19,12 +19,12 @@ def send_carousel(sender_id, products=None, is_my_order=False):
                     "url": TRACK + order['shipment']['tracking']
                 })
             carousel={
-                "title": f"ORDER: { str(order['status']).upper() }",
+                "title": f"{ str(order['status']).upper()} ORDER",
                 "subtitle": (
-                    f"{order['inventory']['name']} \n"
-                    f"Size: {order['variation']['size']} \n"
-                    f"Balance: ₱{order['payment']['to_settle']} \n"
-                    f"Shipment:" f"{order.get('shipment', {}).get('status', 'N/A')} \n"
+                    f"{order['inventory']['name']} | "
+                    f"Size: {order['variation']['size']} | "
+                    f"Balance: ₱{order['payment']['to_settle']} | "
+                    f"Shipment:" f"{order.get('shipment', {}).get('status', 'N/A')}"
                 ),
                 "image_url": order['variation']['image'],
                 "buttons": buttons
