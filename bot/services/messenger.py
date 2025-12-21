@@ -12,7 +12,7 @@ def send_carousel(sender_id, products=None, is_my_order=False):
     if(is_my_order):
         for order in products:
             buttons = []
-            if order.get('shipment', {}).get('tracking'):
+            if order['shipment']:
                 buttons.append({
                     "type": "web_url",
                     "title": "Track Shipment",
@@ -22,7 +22,7 @@ def send_carousel(sender_id, products=None, is_my_order=False):
                 "title": f"{ str(order['status']).upper()} ORDER",
                 "subtitle": (
                     f"{order['inventory']['name']} ({order['variation']['size']}us) | "
-                    f"Balance: ₱{order['payment']['to_settle']} | "
+                    f"Bal: ₱{order['payment']['to_settle']} | "
                     f"{order.get('shipment', {}).get('status', 'N/A')}"
                 ),
                 "image_url": order['variation']['image'],
