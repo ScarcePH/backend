@@ -23,7 +23,6 @@ def confirm_order(sender_id):
         "customer_id": state['customer_id'],
         "inventory_id": state['inventory_id'],
         "variation_id": state["variation_id"],
-        "payment_ss": state["payment_ss"]
     }
     save_order(order)
     payment = {
