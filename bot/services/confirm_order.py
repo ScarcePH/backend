@@ -2,6 +2,8 @@ from bot.state.manager import reset_state,get_state
 from bot.core.constants import CONFIRM_HEADER
 from db.repository.order import save_order
 from bot.services.messenger import reply
+from db.repository.payment import save_payment
+
 
 def confirm_order(sender_id):
     state = get_state(sender_id)
@@ -21,8 +23,13 @@ def confirm_order(sender_id):
         "customer_id": state['customer_id'],
         "inventory_id": state['inventory_id'],
         "variation_id": state["variation_id"],
-        "payment_ss": state["payment_ss"]
     }
-    save_order(order)
+    order = save_order(order)
+    payment = {
+        "payment_ss": state['payment_ss'],
+        "total_amount": state['price'],
+        "order_id": order.id
+    }
+    save_payment(payment)
     reset_state(sender_id)
     return reply(sender_id, msg)

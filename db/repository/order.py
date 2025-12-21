@@ -21,9 +21,6 @@ def get_order(sender_id):
         result.append({
             "order_id": order.id,
             "status": order.status,
-            "payment_method": order.payment_method,
-            "payment_reference": order.payment_reference,
-            "payment_verified": order.payment_verified,
             "created_at": order.created_at,
             "updated_at": order.updated_at,
             "customer": {
@@ -47,6 +44,18 @@ def get_order(sender_id):
                 "image": order.variation.image,
                 "status": order.variation.status,
             } if order.variation else None,
+            "payment": {
+                "id": order.payment.id,
+                "payment_method": order.payment.payment_method,
+                "to_settle": order.payment.total_amount - order.payment.received_amount,
+            } if order.payment else None,
+            "shipment": {
+                "id": order.shipment.id,
+                "carrier": order.shipment.carrier,
+                "tracking": order.shipment.tracking,
+                "status": order.shipment.status,
+            } if order.shipment else None,
+    
         })
     return result
 

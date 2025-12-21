@@ -98,19 +98,18 @@ def get_auto_reply(message, sender_id,state):
                 create_leads(sender_id,  state["item"], state["size"])
             if "use this address" in keyword:
                 confirm_order(sender_id)
+                return None
             if "change address" in keyword:
                 set_state(sender_id, {**state,
                     "state": "awaiting_customer_name",
                 })
                 messender_reply(sender_id, "Alright We will change your address for your shipment.", None)
             if "my order" in keyword:
-               
                 order = get_order(sender_id)
                 if(order):
                     messender_reply(sender_id, "Here’s your current order.")
                     send_carousel(sender_id, order, is_my_order=True)
                 else:
                     messender_reply(sender_id, "You don’t have any active orders.")
-                return None
             return reply
     return None
