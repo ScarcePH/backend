@@ -9,7 +9,7 @@ TRACK = "https://parcelsapp.com/en/tracking/"
 
 QUICK_REPLIES = [
     "💬 Talk to Human",
-    "🛒 My Order"
+    "🛒 My Order",
     "📦 How to Order",
     "🚚 Shipping Info",
 ]
