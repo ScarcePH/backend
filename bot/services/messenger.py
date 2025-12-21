@@ -26,8 +26,9 @@ def send_carousel(sender_id, products=None, is_my_order=False):
                     f"{order['shipment']['status'] if order['shipment'] else ""}"
                 ),
                 "image_url": order['variation']['image'],
-                "buttons": buttons
             }
+            if buttons:
+                carousel["buttons"] = buttons
             items.append(carousel)
     else:
         for inventory in products:
