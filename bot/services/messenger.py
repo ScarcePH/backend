@@ -23,7 +23,7 @@ def send_carousel(sender_id, products=None, is_my_order=False):
                 "subtitle": (
                     f"{order['inventory']['name']} ({order['variation']['size']}us) | "
                     f"Bal: ₱{order['payment']['to_settle']} | "
-                    f"{order['shipment']['status'] if order['shipment'] else ""}"
+                    f"{order['shipment']['status'] if order['shipment'] else ''}"
                 ),
                 "image_url": order['variation']['image'],
             }

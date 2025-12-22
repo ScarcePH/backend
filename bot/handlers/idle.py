@@ -35,6 +35,15 @@ def handle(sender_id, chat, state):
         })
         return "ok"
     
+    if size and not item:
+        stocks = get_item_sizes(size)
+        if stocks.get("found"):
+            reply(sender_id, f"We have {item} in size {size}us")
+            send_carousel(sender_id, stocks["items"])
+            return "ok"
+        reply(sender_id, f"We don't have items in size {size}us currently.")
+        return "ok"
+    
     if not size:
         set_state(sender_id, {
             "state": "awaiting_size",

@@ -70,23 +70,44 @@ def extract_size(query):
     return None
 
 
-def get_item_sizes(size, item_name):
+def get_item_sizes(size):
     # Get DB session
    
 
-    query = Inventory.query.filter(Inventory.size.ilike(f"%{size}%"))
+    query = Inventory.query.filter(
+        InventoryVariation.size == size,
+        InventoryVariation.status != "sold"
+    ).join(InventoryVariation).all()
 
     if not query:
         return []
+    result = []
+    for item in query:
+        result.append({
+            "id": item.id,
+            "name": item.name,
+            "variations": [
+                {
+                    "id": v.id,
+                    "size": v.size,
+                    "condition": v.condition,
+                    "price": v.price,
+                    "stock": v.stock,
+                    "url": v.url,
+                    "image": v.image,
+                    "status": v.status
+                }
+                for v in item.variations if v.size == size 
+            ],
+        })
+    
+    return {
+        "found": len(result)>0,
+        "count": len(result),
+        "items": result
+    }
 
-    available_items = [x.name for x in query]
-
-    formatted_list = ", ".join(f"'{name}'" for name in available_items)
-
-    return (
-        f"We don't have '{item_name}' in size {size}us. "
-        f"However, these are available in size {size}us: {formatted_list}."
-    )
+    
 
 def get_inventory_with_size(name, size):
     query = (
