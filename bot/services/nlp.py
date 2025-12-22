@@ -8,6 +8,7 @@ from db.repository.customer import create_leads
 from bot.services.confirm_order import confirm_order
 from bot.services.messenger import reply as messender_reply, send_carousel
 from db.repository.order import get_order
+from db.repository.inventory import get_all_available_inventory
 
 
 SYSTEM_PROMPT_ANALYSIS = os.environ.get("SYSTEM_PROMPT_ANALYSIS")
@@ -111,5 +112,13 @@ def get_auto_reply(message, sender_id,state):
                     send_carousel(sender_id, order, is_my_order=True)
                 else:
                     messender_reply(sender_id, "You don’t have any active orders.")
+            if 'available pairs' in keyword:
+                pairs = get_all_available_inventory()
+                if pairs.get("found"):
+                    send_carousel(sender_id, pairs["items"])
+                else:
+                    messender_reply(sender_id, "We don't have available pairs currently.")
+                    return None
+                                        
             return reply
     return None

@@ -8,10 +8,11 @@ SCARCE_IMG = "https://scontent.fceb10-1.fna.fbcdn.net/v/t39.30808-6/457018195_12
 TRACK = "https://parcelsapp.com/en/tracking/"
 
 QUICK_REPLIES = [
-    "💬 Talk to Human",
+    "👟 Available Pairs",
     "🛒 My Order",
+    "💬 Talk to Human",
     "📦 How to Order",
-    "🚚 Shipping Info",
+    # "🚚 Shipping Info",
 ]
 
 AUTO_REPLIES = {
@@ -21,7 +22,8 @@ AUTO_REPLIES = {
     "🔔 notify me": "All set. We’ll notify you as soon as the item is back.",
     "change address": " We will start with your name, please provide your full name",
     "use this address": "We’re validating your order now. We’ll message you shortly once it’s confirmed.",
-    "🛒 my order" : "Orders marked as pending are still being processed.\nTracking will appear once the order is shipped."
+    "🛒 my order" : "Orders marked as pending are still being processed.\nTracking will appear once the order is shipped.",
+    "👟 available pairs" : "Above is the available pairs"
 
 }
 

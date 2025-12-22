@@ -29,39 +29,7 @@ def get_all_inventory():
         })
     return result
 
-def search_items(name, size=None):
 
-    query = Inventory.query.filter(
-        Inventory.name.ilike(f"%{name}%")
-    )
-
-    if size:
-        query = query.filter(Inventory.size.ilike(f"%{size}%"))
-
-    # Return ALL matches
-    items = query.all()
-
-    if not items:
-        return {"found": False, "reason": "not_found"}
-
-    results = []
-    for item in items:
-        results.append({
-            "id": item.id,
-            "name": item.name,
-            "size": item.size,
-            "price": item.price,
-            "url": item.url,
-            "image": item.image,
-            "status": item.status,
-            "condition": item.condition
-        })
-
-    return {
-        "found": True,
-        "count": len(results),
-        "items": results
-    }
 
 def extract_size(query):
     match = re.search(r'\b\d+(\.\d+)?\b', query)
@@ -70,36 +38,14 @@ def extract_size(query):
     return None
 
 
-def get_item_sizes(size):
-    # Get DB session
-   
+def get_item_sizes(size):   
 
     query = Inventory.query.filter(
         InventoryVariation.size == size,
         InventoryVariation.status != "sold"
     ).join(InventoryVariation).all()
 
-    if not query:
-        return []
-    result = []
-    for item in query:
-        result.append({
-            "id": item.id,
-            "name": item.name,
-            "variations": [
-                {
-                    "id": v.id,
-                    "size": v.size,
-                    "condition": v.condition,
-                    "price": v.price,
-                    "stock": v.stock,
-                    "url": v.url,
-                    "image": v.image,
-                    "status": v.status
-                }
-                for v in item.variations if v.size == size 
-            ],
-        })
+    result = inventory_json(query)
     
     return {
         "found": len(result)>0,
@@ -124,11 +70,33 @@ def get_inventory_with_size(name, size):
 
     inventories = query.all()
 
+    result = inventory_json(inventories)
+
+    return {
+        "found": len(result)>0,
+        "count": len(result),
+        "items": result
+    }
+
+def get_all_available_inventory():
+    query = Inventory.query.filter(
+        InventoryVariation.status != "sold"
+    ).join(InventoryVariation).all()
+
+    result = inventory_json(query)
+    return {
+        "found": len(result)>0,
+        "count": len(result),
+        "items": result
+    }
+
+def inventory_json(items):
     result = []
-    for item in inventories:
+    for i in items:
         result.append({
-            "id": item.id,
-            "name": item.name,
+            "id": i.id,
+            "name": i.name,
+            "description": i.description,
             "variations": [
                 {
                     "id": v.id,
@@ -140,12 +108,7 @@ def get_inventory_with_size(name, size):
                     "image": v.image,
                     "status": v.status
                 }
-                for v in item.variations if v.size == size 
+                for v in i.variations
             ],
         })
-
-    return {
-        "found": len(result)>0,
-        "count": len(result),
-        "items": result
-    }
+    return result
