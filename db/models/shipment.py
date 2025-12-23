@@ -17,4 +17,15 @@ class Shipment(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "carrier": self.carrier,
+            "tracking": self.tracking,
+            "status": self.status,
+            "order_id": self.order_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
  

@@ -14,4 +14,16 @@ class InventoryVariation(db.Model):
     stock = db.Column(db.Integer, default=0)
     url = db.Column(db.String)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "inventory_id": self.inventory_id,
+            "condition": self.condition,
+            "price": float(self.price) if self.price is not None else None,
+            "size": self.size,
+            "image": self.image,
+            "status": self.status,
+            "stock": self.stock,
+            "url": self.url,
+        }
 

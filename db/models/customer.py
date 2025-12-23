@@ -11,3 +11,13 @@ class Customers(db.Model):
     address = db.Column(db.String)
 
     created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "sender_id": self.sender_id,
+            "name": self.name,
+            "phone": self.phone,
+            "address": self.address,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
