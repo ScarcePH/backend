@@ -1,12 +1,13 @@
 from flask import Flask, request, send_from_directory
 from dotenv import load_dotenv
 from bot.webhook_handler import bot_bp
-from api import customers_bp, orders_bp, inventory_bp
+from api import customers_bp, orders_bp, inventory_bp, auth_bp
 from db.database import db, migrate
 from config import Config
 import os
-from db.models import Customers, Inventory, Order
 from flask_migrate import upgrade
+from flask_jwt_extended import JWTManager
+
 
 load_dotenv()
 
@@ -38,6 +39,12 @@ app.register_blueprint(bot_bp)
 app.register_blueprint(customers_bp, url_prefix="/api")
 app.register_blueprint(orders_bp, url_prefix="/api")
 app.register_blueprint(inventory_bp, url_prefix="/api")
+app.register_blueprint(auth_bp, url_prefix="/api")
+
+app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 60 * 60  # 1 hour
+
+jwt = JWTManager(app)
 
 @app.route("/")
 def index():
