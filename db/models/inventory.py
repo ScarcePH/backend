@@ -25,6 +25,7 @@ class Inventory(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
+            "variations": [variation.to_dict() for variation in self.variations],
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

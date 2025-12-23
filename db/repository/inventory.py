@@ -20,13 +20,7 @@ def save_variation(inventory_id, data:dict):
 
 def get_all_inventory():
     items = Inventory.query.all()
-    result = []
-    for i in items:
-        result.append({
-            "id": i.id,
-            "name": i.name,
-            "description": i.description,
-        })
+    result = [Inventory.to_dict(item) for item in items]
     return result
 
 
@@ -45,7 +39,8 @@ def get_item_sizes(size):
         InventoryVariation.status != "sold"
     ).join(InventoryVariation).all()
 
-    result = inventory_json(query)
+
+    result = [Inventory.to_dict(item) for item in query]
     
     return {
         "found": len(result)>0,
@@ -70,7 +65,8 @@ def get_inventory_with_size(name, size):
 
     inventories = query.all()
 
-    result = inventory_json(inventories)
+
+    result = [Inventory.to_dict(item) for item in query]
 
     return {
         "found": len(result)>0,
@@ -83,32 +79,12 @@ def get_all_available_inventory():
         InventoryVariation.status != "sold"
     ).join(InventoryVariation).all()
 
-    result = inventory_json(query)
+
+    result = [Inventory.to_dict(item) for item in query]    
+
     return {
         "found": len(result)>0,
         "count": len(result),
         "items": result
     }
 
-def inventory_json(items):
-    result = []
-    for i in items:
-        result.append({
-            "id": i.id,
-            "name": i.name,
-            "description": i.description,
-            "variations": [
-                {
-                    "id": v.id,
-                    "size": v.size,
-                    "condition": v.condition,
-                    "price": v.price,
-                    "stock": v.stock,
-                    "url": v.url,
-                    "image": v.image,
-                    "status": v.status
-                }
-                for v in i.variations
-            ],
-        })
-    return result

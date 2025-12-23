@@ -22,9 +22,5 @@ def admin_login():
 
     return jsonify({
         "access_token": access_token,
-        "admin": {
-            "id": admin.id,
-            "email": admin.email,
-            "role": admin.role
-        }
+        "admin": Admin.to_dict(admin)
     })
