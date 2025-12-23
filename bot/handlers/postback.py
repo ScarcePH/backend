@@ -15,7 +15,7 @@ def handle_postback(sender_id, payload,event):
 
     if order_payload["action"] == "ORDER":
         print("[POSTBACK EVENT]:", event)
-
+        clear_handover(sender_id)
         set_state(sender_id, {
             "state": "awaiting_confirmation",
             "item": order_payload["item"],
