@@ -7,6 +7,8 @@ from config import Config
 import os
 from flask_migrate import upgrade
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
+
 
 
 load_dotenv()
@@ -43,6 +45,11 @@ app.register_blueprint(auth_bp, url_prefix="/api")
 
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 60 * 60  # 1 hour
+
+allowed_origins = [
+    "http://localhost:5173"
+]
+CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
 jwt = JWTManager(app)
 
