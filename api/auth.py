@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
 from db.models.admin import Admin
+from middleware.admin_required import admin_required
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -24,3 +25,9 @@ def admin_login():
         "access_token": access_token,
         "admin": Admin.to_dict(admin)
     })
+
+
+@auth_bp.route("/auth/validate", methods=["GET"])
+@admin_required()
+def protected():
+    return jsonify({"status": True, "message":"Authenticated"}), 200
