@@ -2,6 +2,8 @@ from db.models import Order
 from db.database import db
 from db.models import Customers, Inventory, InventoryVariation, Payment
 from flask import jsonify
+from bot.services.messenger import send_carousel
+
 
 
 
@@ -38,6 +40,17 @@ def update_order(order_id, status, received_payment):
         payment.received_amount = received_payment
     order.status = status
     db.session.commit()
+    
+    notif_user = (
+        Order.query
+        .join(Customers)
+        .filter(Order.id == order_id)
+        .all()
+    )
+
+    result = [Order.to_dict(order) for order in notif_user]
+    send_carousel(notif_user.sender_id, result, is_my_order=True)
+
     return jsonify({
         "message": "Order updated",
         "order_id": order.id,
