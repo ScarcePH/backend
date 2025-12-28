@@ -49,7 +49,7 @@ def update_order(order_id, status, received_payment):
     )
 
     result = [Order.to_dict(order) for order in notif_user]
-    send_carousel(notif_user.sender_id, result, is_my_order=True)
+    send_carousel(notif_user.customer.sender_id, result, is_my_order=True)
 
     return jsonify({
         "message": "Order updated",
