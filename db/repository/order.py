@@ -38,6 +38,11 @@ def update_order(order_id, status, received_payment):
     payment = Payment.query.filter_by(order_id=order.id).first()
     if payment:
         payment.received_amount = received_payment
+    
+    if(status=='confirmed'):
+        item = InventoryVariation.query.get_or_404(order.variation_id)
+        item.status = "sold"
+
     order.status = status
     db.session.commit()
     
