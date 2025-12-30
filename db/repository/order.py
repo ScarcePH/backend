@@ -33,7 +33,7 @@ def get_all_pending_orders():
     result = [Order.to_dict(order) for order in orders]
     return result
 
-def update_order(order_id, status, received_payment):
+def update_order(order_id, status, received_payment, cancel_reason):
     order = Order.query.get_or_404(order_id)
     payment = Payment.query.filter_by(order_id=order.id).first()
     if payment:
@@ -56,7 +56,7 @@ def update_order(order_id, status, received_payment):
     result = [Order.to_dict(order) for order in notif_user]
     sender_id = result[0]['customer']['sender_id']
     send_carousel(sender_id, result, is_my_order=True)
-    reply(sender_id, f"Your order is {status}")
+    reply(sender_id, f"Your order is {status}. \n {cancel_reason}")
 
     return jsonify({
         "message": "Order updated",
