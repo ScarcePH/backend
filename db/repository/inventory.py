@@ -34,10 +34,15 @@ def extract_size(query):
 
 def get_item_sizes(size):   
 
-    query = Inventory.query.filter(
-        InventoryVariation.size == size,
-        InventoryVariation.status != "sold"
-    ).join(InventoryVariation).all()
+    query = (
+        Inventory.query
+        .join(InventoryVariation)
+        .filter(
+            InventoryVariation.size == size, 
+            InventoryVariation.status != "sold"
+        )
+        .all()
+    )
 
 
     result = [Inventory.to_dict(item) for item in query]
@@ -75,9 +80,12 @@ def get_inventory_with_size(name, size):
     }
 
 def get_all_available_inventory():
-    query = Inventory.query.filter(
-        InventoryVariation.status != "sold"
-    ).join(InventoryVariation).all()
+    query = (
+        Inventory.query
+        .join(InventoryVariation)
+        .filter(InventoryVariation.status != "sold")
+        .all()
+    )
 
 
     result = [Inventory.to_dict(item) for item in query]    
