@@ -31,12 +31,14 @@ def create_variation():
 
 
 @inventory_bp.route("inventory/get-all", methods=["GET"])
+@admin_required(allowed_roles=["super_admin"])
 def fetch_inventory():
     return get_all_inventory()
 
 
 
 @inventory_bp.route("inventory/get-size", methods=["GET"])
+@admin_required(allowed_roles=["super_admin"])
 def fetch_item_by_size():
     size = request.args.get('size') 
     if not size:
@@ -45,6 +47,7 @@ def fetch_item_by_size():
     return get_item_sizes(size)
 
 @inventory_bp.route("inventory/get-name-size", methods=["GET"])
+@admin_required(allowed_roles=["super_admin"])
 def fetch_inventory_with_size():
     name = request.args.get('name') 
     size = request.args.get('size') 
