@@ -1,6 +1,8 @@
 from db.models import Inventory, InventoryVariation
 from db.database import db
 import re
+from sqlalchemy.orm import contains_eager
+
 
 
 def save_inventory(data: dict):
@@ -41,6 +43,7 @@ def get_item_sizes(size):
             InventoryVariation.size == size, 
             InventoryVariation.status != "sold"
         )
+        .options(contains_eager(Inventory.variations))
         .all()
     )
 
@@ -66,7 +69,8 @@ def get_inventory_with_size(name, size):
         query = query.filter(
             InventoryVariation.size == size,
             InventoryVariation.status != "sold"
-        )
+        ).options(contains_eager(Inventory.variations))
+
 
     inventories = query.all()
 
@@ -84,6 +88,7 @@ def get_all_available_inventory():
         Inventory.query
         .join(InventoryVariation)
         .filter(InventoryVariation.status != "sold")
+        .options(contains_eager(Inventory.variations))
         .all()
     )
 

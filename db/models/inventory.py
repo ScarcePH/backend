@@ -18,7 +18,6 @@ class Inventory(db.Model):
         "InventoryVariation",
         backref="inventory",
         cascade="all, delete-orphan",
-        lazy="dynamic"
     )
     def to_dict(self):
         return {
