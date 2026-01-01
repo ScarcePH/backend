@@ -33,12 +33,13 @@ def get_all_pending_orders():
     result = [Order.to_dict(order) for order in orders]
     return result
 
-def get_all_orders():
+def get_all_confirmed_orders():
     orders = (
         Order.query
         .join(Customers)
         .join(Payment)
         .join(Shipment)
+        .filter(Order.status == "confirmed")
         .all()
     )
     result = [Order.to_dict(order) for order in orders]

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from db.database import db
 from db.models import Order
-from db.repository.order import save_order, get_order, get_all_pending_orders, update_order, get_all_orders
+from db.repository.order import save_order, get_order, get_all_pending_orders, update_order, get_all_confirmed_orders
 from middleware.admin_required import admin_required
 
 orders_bp = Blueprint("orders", __name__)
@@ -27,10 +27,10 @@ def pending_orders():
     return pending_orders
 
 
-@orders_bp.route("orders/get-all", methods=["GET"])
+@orders_bp.route("orders/get-all-confirmed", methods=["GET"])
 @admin_required(allowed_roles=["super_admin"])
 def get_all():
-    pending_orders = get_all_orders()
+    pending_orders = get_all_confirmed_orders()
     return pending_orders
 
 @orders_bp.route("orders/update-status", methods=["POST"])
