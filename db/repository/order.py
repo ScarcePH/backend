@@ -3,6 +3,8 @@ from db.database import db
 from db.models import Customers, Inventory, InventoryVariation, Payment, Shipment
 from flask import jsonify
 from bot.services.messenger import send_carousel, reply
+import re
+
 
 
 
@@ -39,11 +41,22 @@ def get_all_confirmed_orders():
         .join(Customers)
         .join(Payment)
         .join(Shipment)
-        .filter(Order.status == "confirmed")
+        # .filter(Order.status == "confirmed")
         .all()
     )
     result = [Order.to_dict(order) for order in orders]
-    return result
+
+    orders = []
+    for order in result:
+        orders.append({
+            "customer": order['customer']['name'],
+            "pair": re.sub(r"nike sb stefan janoski\s*", "", order['inventory']['name'], flags=re.IGNORECASE),
+            "tracking": order['shipment']['tracking'] if order['shipment'] else "pending",
+            "balance": order['payment']['to_settle'] if order['payment'] else None,
+            "amount": order['variation']['price'],
+            "size": order['variation']['size']
+        })
+    return orders
 
 def update_order(order_id, status, received_payment, cancel_reason):
     order = Order.query.get_or_404(order_id)
