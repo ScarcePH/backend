@@ -1,6 +1,6 @@
 from db.models import Order
 from db.database import db
-from db.models import Customers, Inventory, InventoryVariation, Payment
+from db.models import Customers, Inventory, InventoryVariation, Payment, Shipment
 from flask import jsonify
 from bot.services.messenger import send_carousel, reply
 
@@ -28,6 +28,17 @@ def get_all_pending_orders():
         Order.query
         .join(Customers)
         .filter(Order.status == "pending")
+        .all()
+    )
+    result = [Order.to_dict(order) for order in orders]
+    return result
+
+def get_all_orders():
+    orders = (
+        Order.query
+        .join(Customers)
+        .join(Payment)
+        .join(Shipment)
         .all()
     )
     result = [Order.to_dict(order) for order in orders]
