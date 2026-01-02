@@ -62,7 +62,7 @@ def get_all_confirmed_orders():
 
     return {
         "orders":orders,
-        "balance":balance,
+        "total_balance":balance,
         "total":total
     }
 
