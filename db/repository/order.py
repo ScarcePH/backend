@@ -39,24 +39,32 @@ def get_all_confirmed_orders():
     orders = (
         Order.query
         .join(Customers)
-        .join(Payment)
-        .join(Shipment)
-        # .filter(Order.status == "confirmed")
+        .filter(Order.status == "confirmed")
         .all()
     )
     result = [Order.to_dict(order) for order in orders]
 
     orders = []
+    total = 0
+    balance = 0
     for order in result:
+        total += order['variation']['price']
+        balance += order['payment']['to_settle'] if order['payment'] else 0
         orders.append({
             "customer": order['customer']['name'],
             "pair": re.sub(r"nike sb stefan janoski\s*", "", order['inventory']['name'], flags=re.IGNORECASE),
             "tracking": order['shipment']['tracking'] if order['shipment'] else "pending",
             "balance": order['payment']['to_settle'] if order['payment'] else None,
             "amount": order['variation']['price'],
-            "size": order['variation']['size']
+            "size": order['variation']['size'],
         })
-    return orders
+       
+
+    return {
+        "orders":orders,
+        "balance":balance,
+        "total":total
+    }
 
 def update_order(order_id, status, received_payment, cancel_reason):
     order = Order.query.get_or_404(order_id)
