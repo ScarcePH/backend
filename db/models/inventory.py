@@ -8,6 +8,7 @@ class Inventory(db.Model):
 
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
+    image = db.Column(db.String)
 
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
@@ -29,6 +30,7 @@ class Inventory(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
+            "image": self.image,
             "variations": [variation.to_dict() for variation in sorted_variations],
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
