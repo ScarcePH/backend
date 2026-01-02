@@ -25,7 +25,7 @@ def send_carousel(sender_id, products=None, is_my_order=False):
                     f"Bal: ₱{order['payment']['to_settle']} | "
                     f"{order['shipment']['status'] if order['shipment'] else ''}"
                 ),
-                "image_url": order['image'],
+                "image_url": order['inventory']['image'],
             }
             if buttons:
                 carousel["buttons"] = buttons
