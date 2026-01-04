@@ -9,7 +9,8 @@ def save_inventory(data: dict):
     inventory = Inventory(**data)
     db.session.add(inventory)
     db.session.commit()
-    return inventory
+    res = Inventory.to_dict(inventory)
+    return res
 
 def save_variation(inventory_id, data:dict):
     variation = InventoryVariation(

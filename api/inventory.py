@@ -17,8 +17,8 @@ inventory_bp = Blueprint("inventory", __name__)
 @admin_required(allowed_roles=["super_admin"])
 def create_inventory():
     data = request.json
-    item = save_inventory(data)
-    return jsonify({"data": data, "message": "Inventory created"}),201
+    res = save_inventory(data)
+    return jsonify({"data": res, "message": "Inventory created"}),201
 
 
 @inventory_bp.route("/inventory/create-variation", methods=["POST"])
@@ -57,3 +57,8 @@ def fetch_inventory_with_size():
         return {"message": "name and size is required"}, 400
     
     return get_inventory_with_size(name,size)
+
+@inventory_bp.route("inventory/get-available", methods=["GET"])
+def test():
+    data = get_all_available_inventory()
+    return data
