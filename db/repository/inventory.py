@@ -14,7 +14,6 @@ def save_inventory(data: dict):
 
 def save_variation(inventory_id, data:dict):
     variation = InventoryVariation(
-        inventory_id=inventory_id,
        **data
     )
     db.session.add(variation)
