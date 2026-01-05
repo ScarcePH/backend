@@ -5,7 +5,7 @@ from db.repository.inventory import (
     get_all_inventory,
     save_inventory,
     get_item_sizes,
-    save_variation,
+    save_variations,
     get_inventory_with_size,
     get_all_available_inventory
 )
@@ -24,10 +24,19 @@ def create_inventory():
 @inventory_bp.route("/inventory/create-variation", methods=["POST"])
 @admin_required(allowed_roles=["super_admin"])
 def create_variation():
-    inventory_id= request.args.get('inventory_id')
-    data = request.json
-    save_variation(inventory_id, data)
-    return jsonify({"data": data , "message": "Variation created"}),201
+    payload = request.json
+    if not isinstance(payload, dict):
+        return jsonify({"message": "Payload must be a JSON object"}), 400
+    inventory_id = payload.get("inventory_id", None)
+    variations = payload.get("variations", None)
+    if not inventory_id or not variations:
+        return jsonify({"message": "Invalid JSON payload"}), 400
+ 
+    data = save_variations(inventory_id, variations)
+    return jsonify({
+        "message": "Variations synchronized successfully"
+    }), 201
+ 
 
 
 @inventory_bp.route("inventory/get-all", methods=["GET"])

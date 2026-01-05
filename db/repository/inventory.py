@@ -12,13 +12,47 @@ def save_inventory(data: dict):
     res = Inventory.to_dict(inventory)
     return res
 
-def save_variation(inventory_id, data:dict):
-    variation = InventoryVariation(
-       **data
+def save_variations(inventory_id: int, variations: list[dict]):
+  
+
+    existing_variations = (
+        InventoryVariation.query
+        .filter_by(inventory_id=inventory_id)
+        .all()
     )
-    db.session.add(variation)
+
+    existing_map = {v.id: v for v in existing_variations}
+
+    incoming_ids = set()
+    
+    for data in variations:
+        variation_id = data.get("id")
+
+        if variation_id and variation_id in existing_map:
+            variation = existing_map[variation_id]
+            incoming_ids.add(variation_id)
+
+            for key, value in data.items():
+                if key != "id":
+                    setattr(variation, key, value)
+
+        else:
+            variation = InventoryVariation(
+                inventory_id=inventory_id,
+                **{k: v for k, v in data.items() if k != "id"}
+            )
+            db.session.add(variation)
+
+    for variation in existing_variations:
+        if variation.id not in incoming_ids:
+            db.session.delete(variation)
+
     db.session.commit()
-    return variation
+
+    res = InventoryVariation.query.filter_by(inventory_id=inventory_id).all()
+    res = [InventoryVariation.to_dict(item) for item in res]    
+    return res
+
 
 def get_all_inventory():
     items = Inventory.query.all()
