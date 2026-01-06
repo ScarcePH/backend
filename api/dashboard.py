@@ -1,115 +1,72 @@
 from flask import Blueprint, jsonify
-from sqlalchemy import func, case
-from datetime import datetime, timedelta
-from db.models import Order, Payment
-from db.database import db
 from middleware.admin_required import admin_required
+from db.repository.dashboard import dashboard_summary
+from db.database import db
+from db.models import Inventory, InventoryVariation
+from sqlalchemy import func
+from collections import defaultdict
+
 
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
 @dashboard_bp.route("/dashboard/summary")
 @admin_required()
-def dashboard_summary():
-    now = datetime.now()
+def summary_cards():
+    return dashboard_summary()
 
-    start_week = now - timedelta(days=now.weekday())
-    start_last_week = start_week - timedelta(days=7)
-
-    start_month = now.replace(day=1)
-    start_last_month = (start_month - timedelta(days=1)).replace(day=1)
-
-    pending_orders = (
-        db.session.query(func.count(Order.id))
-        .filter(Order.status == "pending")
-        .scalar()
-    )
-
-    paid_per_order = (
+@dashboard_bp.route("/dashboard/bestseller")
+@admin_required()
+def best_selling():
+    top_inventory = (
         db.session.query(
-            Payment.order_id,
-            func.coalesce(func.sum(Payment.received_amount), 0).label("paid")
+            Inventory.id.label("inventory_id"),
+            Inventory.name.label("inventory_name"),
+            Inventory.image.label("image"),
+            InventoryVariation.size.label("size"),
+            func.count(InventoryVariation.id).label("sold_count"),
+            func.coalesce(
+                func.sum(InventoryVariation.price), 0
+            ).label("revenue"),
         )
-        .group_by(Payment.order_id)
-        .subquery()
-    )
-
-    outstanding_per_order = (
-        db.session.query(
-            Order.id,
-            (
-                func.max(Payment.total_amount)
-                - func.coalesce(paid_per_order.c.paid, 0)
-            ).label("outstanding")
+        .join(
+            InventoryVariation,
+            InventoryVariation.inventory_id == Inventory.id
         )
-        .outerjoin(paid_per_order, Order.id == paid_per_order.c.order_id)
-        .outerjoin(Payment, Payment.order_id == Order.id)
-        .group_by(Order.id, paid_per_order.c.paid)
-        .subquery()
-    )
-
-    outstanding_summary = (
-        db.session.query(
-            func.coalesce(func.sum(outstanding_per_order.c.outstanding), 0),
-            func.count(outstanding_per_order.c.id)
-        )
-        .filter(outstanding_per_order.c.outstanding > 0)
-        .one()
-    )
-
-    outstanding_amount, outstanding_count = outstanding_summary
-
-    orders_this_week = (
-        db.session.query(func.count(Order.id))
         .filter(
-            Order.status == 'confirmed',
-            Order.created_at >= start_week
+            InventoryVariation.status == "sold"
         )
-        .scalar()
-    )
-
-    orders_last_week = (
-        db.session.query(func.count(Order.id))
-        .filter(
-            Order.status == 'confirmed',
-            Order.created_at >= start_last_week,
-            Order.created_at < start_week
+        .group_by(
+            Inventory.id,
+            Inventory.name,
+            Inventory.image,
+            InventoryVariation.size
         )
-        .scalar()
-    )
-
-    orders_delta = orders_this_week - orders_last_week
-
-    revenue_this_month = (
-        db.session.query(func.coalesce(func.sum(Payment.received_amount), 0))
-        .filter(Payment.created_at >= start_month)
-        .scalar()
-    )
-
-    revenue_last_month = (
-        db.session.query(func.coalesce(func.sum(Payment.received_amount), 0))
-        .filter(
-            Payment.created_at >= start_last_month,
-            Payment.created_at < start_month
+        .order_by(
+            func.sum(InventoryVariation.price).desc()
         )
-        .scalar()
+        .limit(5)
+        .all()
     )
 
-    revenue_delta = revenue_this_month - revenue_last_month
-    return jsonify({
 
-        "pending_orders": pending_orders,
-        "outstanding_balance": {
-            "amount": outstanding_amount,
-            "count": outstanding_count,
-        },
-        "orders_this_week": {
-            "count": orders_this_week,
-            "delta": orders_delta,
-        },
-        "revenue_this_month": {
-            "amount": revenue_this_month,
-            "delta": revenue_delta,
-        }
-        
+    grouped = defaultdict(lambda: {
+        "inventory_id": None,
+        "name": None,
+        "sizes": []
     })
+
+    for row in top_inventory:
+        item = grouped[row.inventory_id]
+        item["inventory_id"] = row.inventory_id
+        item["name"] = row.inventory_name
+        item['image'] = row.image
+        item["sizes"].append({
+            "size": row.size,
+            "sold_count": row.sold_count,
+            "revenue": row.revenue,
+        })
+
+    return jsonify(list(grouped.values()))
+
+
