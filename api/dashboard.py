@@ -45,7 +45,7 @@ def best_selling():
         .order_by(
             func.sum(InventoryVariation.price).desc()
         )
-        .limit(5)
+        .limit(3)
         .all()
     )
 
