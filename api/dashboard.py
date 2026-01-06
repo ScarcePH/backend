@@ -3,10 +3,13 @@ from sqlalchemy import func, case
 from datetime import datetime, timedelta
 from db.models import Order, Payment
 from db.database import db
+from middleware.admin_required import admin_required
+
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
 @dashboard_bp.route("/dashboard/summary")
+@admin_required()
 def dashboard_summary():
     now = datetime.now()
 
