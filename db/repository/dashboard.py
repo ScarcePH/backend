@@ -54,10 +54,13 @@ def dashboard_summary():
 
     outstanding_amount, outstanding_count = outstanding_summary
 
+    VALID_STATUS = ['confirmed', 'completed']
+
+
     orders_this_week = (
         db.session.query(func.count(Order.id))
         .filter(
-            Order.status == 'confirmed',
+            Order.status.in_(VALID_STATUS),
             Order.created_at >= start_week
         )
         .scalar()
@@ -66,7 +69,7 @@ def dashboard_summary():
     orders_last_week = (
         db.session.query(func.count(Order.id))
         .filter(
-            Order.status == 'confirmed',
+            Order.status.in_(VALID_STATUS),
             Order.created_at >= start_last_week,
             Order.created_at < start_week
         )
