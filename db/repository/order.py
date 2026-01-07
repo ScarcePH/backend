@@ -67,15 +67,17 @@ def get_all_confirmed_orders():
         "total":total
     }
 
-def update_order(order_id, status, received_payment, cancel_reason):
+def update_order(order_id, status, received_payment, cancel_reason, release):
     order = Order.query.get_or_404(order_id)
     payment = Payment.query.filter_by(order_id=order.id).first()
     if payment:
         payment.received_amount = received_payment
     
+    item = InventoryVariation.query.get_or_404(order.variation_id)
     if(status=='confirmed'):
-        item = InventoryVariation.query.get_or_404(order.variation_id)
         item.status = "sold"
+    if(status=='cancelled' and release):
+        item.status = release
 
     order.status = status
     db.session.commit()

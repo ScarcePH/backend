@@ -45,10 +45,11 @@ def update():
     order_id = data.get("order_id")
     received_payment = data.get("received_payment")
     cancel_reason = data.get("cancel_reason")
+    release = data.get("release")
     if not order_id or  not status:
         return jsonify({"message": "order_id & status  is required"}),422
     
-    order = update_order(order_id, status, received_payment, cancel_reason)
+    order = update_order(order_id, status, received_payment, cancel_reason, release)
     return order
 
 
