@@ -45,28 +45,41 @@ def best_selling():
         .order_by(
             func.sum(InventoryVariation.price).desc()
         )
-        .limit(3)
         .all()
     )
 
 
     grouped = defaultdict(lambda: {
         "inventory_id": None,
-        "name": None,
-        "sizes": []
+        "inventory_name": None,
+        "total_sold": 0,
+        "total_revenue": 0,
+        "sizes": [],
     })
 
     for row in top_inventory:
         item = grouped[row.inventory_id]
+
         item["inventory_id"] = row.inventory_id
-        item["name"] = row.inventory_name
+        item["inventory_name"] = row.inventory_name
         item['image'] = row.image
+
         item["sizes"].append({
             "size": row.size,
             "sold_count": row.sold_count,
             "revenue": row.revenue,
         })
 
-    return jsonify(list(grouped.values()))
+        item["total_sold"] += row.sold_count
+        item["total_revenue"] += row.revenue
+
+        
+    result = sorted(
+        grouped.values(),
+        key=lambda x: x["total_revenue"],
+        reverse=True
+    )[:3]
+
+    return jsonify(result)
 
 
