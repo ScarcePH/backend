@@ -20,10 +20,14 @@ def get_order_by_senderid():
     order = get_order(sender_id)
     return order
 
-@orders_bp.route("orders/get-all-pending", methods=["GET"])
+@orders_bp.route("orders/get-all", methods=["GET"])
 @admin_required(allowed_roles=["super_admin"])
 def pending_orders():
-    pending_orders = get_all_pending_orders()
+    status = request.args.get('status')
+    if(not status):
+       return jsonify({"message": "url param status required"}),422 
+
+    pending_orders = get_all_pending_orders(status)
     return pending_orders
 
 

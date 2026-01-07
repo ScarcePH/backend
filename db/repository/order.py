@@ -25,11 +25,12 @@ def get_order(sender_id):
     result = [Order.to_dict(order) for order in orders]
     return result
 
-def get_all_pending_orders():
+def get_all_pending_orders(status):
     orders = (
         Order.query
+        .filter(Order.status == status)
         .join(Customers)
-        .filter(Order.status == "pending")
+       
         .all()
     )
     result = [Order.to_dict(order) for order in orders]
@@ -38,8 +39,8 @@ def get_all_pending_orders():
 def get_all_confirmed_orders():
     orders = (
         Order.query
-        .join(Customers)
         .filter(Order.status == "confirmed")
+        .join(Customers)
         .all()
     )
     result = [Order.to_dict(order) for order in orders]
