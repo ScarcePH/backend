@@ -78,6 +78,8 @@ def update_order(order_id, status, received_payment, cancel_reason, release):
         item.status = "sold"
     if(status=='cancelled' and release):
         item.status = release
+    if(status=='completed' and payment):
+        payment.received_amount = payment.total_amount
 
     order.status = status
     db.session.commit()
