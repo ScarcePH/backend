@@ -23,7 +23,7 @@ AUTO_REPLIES = {
     "change address": " We will start with your name, please provide your full name",
     "use this address": "We’re validating your order now. We’ll message you shortly once it’s confirmed.",
     "🛒 my order" : "Orders marked as pending are still being processed.\nTracking will appear once the order is shipped.",
-    "👟 available pairs" : "Above is the available pairs"
+    # "👟 available pairs" : "Above is the available pairs"
 
 }
 
