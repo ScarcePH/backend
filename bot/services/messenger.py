@@ -80,4 +80,5 @@ def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[])
 
 def coursel_image(img_url):
     filename = img_url.split("/")[-1]
-    base_url = "https://marionrosete.github.io/ScarcePH/public/carousel/"+filename
+    image = "https://marionrosete.github.io/ScarcePH/public/carousel/"+filename
+    return image
