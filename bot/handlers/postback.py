@@ -1,5 +1,5 @@
 from bot.services.messenger import reply
-from bot.core.constants import WELCOME_MSG
+from bot.core.constants import WELCOME_MSG,YES_OR_NO
 from bot.state.manager import reset_state, clear_handover,set_state, get_state
 import json
 
@@ -36,4 +36,6 @@ def handle_postback(sender_id, payload,event):
             "Would you like to order this pair? (Yes / No)"
         )
         
-        reply(sender_id,msg,None)
+        reply(sender_id,msg, YES_OR_NO)
+
+    print("payload",payload)

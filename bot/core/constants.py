@@ -35,3 +35,8 @@ SAVED_ADDRESS=[
     "Use this address",
     "Change address",
 ]
+
+YES_OR_NO=[
+    "✅ YES",
+    "❌ NO"
+]
