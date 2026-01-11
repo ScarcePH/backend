@@ -41,10 +41,11 @@ def webhook():
                 return {"status": "ok"}
             
             quick_reply = event.get("message", {}).get("quick_reply",'')
-            
-            if "PAGE" in quick_reply.get('payload','') or "available pairs" in quick_reply.get('payload','').lower(): 
-                handle_carousel_postback(sender_id, quick_reply["payload"])
-                return{"status":"ok"}
+
+            if(quick_reply):
+                if "PAGE" in quick_reply.get('payload','') or "available pairs" in quick_reply.get('payload','').lower(): 
+                    handle_carousel_postback(sender_id, quick_reply["payload"])
+                    return{"status":"ok"}
                 
                 
 
