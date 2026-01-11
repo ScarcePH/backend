@@ -23,8 +23,8 @@ def webhook():
             sender_id = event["sender"]["id"]
 
             ## DEVELOPER MODE
-            # if str(sender_id)!="7517723111585024":
-            #     return {"status": "ok"} 
+            if str(sender_id)!="7517723111585024":
+                return {"status": "ok"} 
 
             # prevent duplicate messages
             mid = event.get("message", {}).get("mid")
