@@ -156,14 +156,14 @@ def get_all_available_inventory(page=1):
 
     if has_prev:
         buttons.append({
-            "type": "postback",
+            "content_type":"text",
             "title": "⬅ Previous",
             "payload": f"PAGE_{page-1}"
         })
 
     if has_next:
         buttons.append({
-            "type": "postback",
+            "content_type":"text",
             "title": "Next ➡",
             "payload": f"PAGE_{page+1}"
         })

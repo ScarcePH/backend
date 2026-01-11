@@ -1,8 +1,6 @@
 from bot.services.messenger import reply
 from bot.core.constants import WELCOME_MSG,YES_OR_NO
-from bot.state.manager import reset_state, clear_handover,set_state, get_state
-from db.repository.inventory import get_all_available_inventory
-from bot.services.messenger import send_carousel
+from bot.state.manager import reset_state, clear_handover,set_state
 import json
 
 def handle_postback(sender_id, payload,event):
@@ -44,9 +42,4 @@ def handle_postback(sender_id, payload,event):
 
 
    
-    if payload.startswith("PAGE_"):
-        page = int(payload.split("_")[1])
-        pairs = get_all_available_inventory(page)
-        if pairs.get("found"):
-            send_carousel(sender_id, pairs["items"], quick_replies=pairs["quick_replies"])
-        return
+ 

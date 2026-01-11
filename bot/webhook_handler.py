@@ -5,6 +5,7 @@ from bot.state.manager import set_handover, is_in_handover, get_state
 from bot.utils.redis_client import redis_client
 from bot.services.messenger import reply
 from bot.core.constants import IMAGE_SENT_MSG,BOT_TAG
+from bot.services.carousel_pagination import handle_carousel_postback
 import os
 
 bot_bp = Blueprint("bot", __name__)
@@ -38,6 +39,13 @@ def webhook():
             if "postback" in event:
                 handle_postback(sender_id, event["postback"].get("payload"),event)
                 return {"status": "ok"}
+            
+            quick_reply = event.get("message", {}).get("quick_reply")
+            
+            if "PAGE" in quick_reply['payload']:
+                handle_carousel_postback(sender_id, quick_reply["payload"])
+                
+                
 
             if is_in_handover(sender_id):
                 return {"status": "ok"}
