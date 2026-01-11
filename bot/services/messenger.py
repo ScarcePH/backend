@@ -25,7 +25,7 @@ def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[])
                     f"Bal: ₱{order['payment']['to_settle']} | "
                     f"{order['shipment']['status'] if order['shipment'] else ''}"
                 ),
-                "image_url": order['inventory']['image'],
+                "image_url": coursel_image(order['inventory']['image']),
             }
             if buttons:
                 carousel["buttons"] = buttons
@@ -37,7 +37,7 @@ def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[])
                 carousel={
                     "title":inventory['name'],
                     "subtitle": f"{variation['status']} | {variation['condition']} | Size: {variation['size']} | ₱{variation['price']}",
-                    "image_url":inventory['image'],
+                    "image_url": coursel_image(inventory['image']),
                     "buttons":[
                         {
                             "type": "web_url",
@@ -76,3 +76,8 @@ def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[])
     }
 
     send_template_message(sender_id, message)
+
+
+def coursel_image(img_url):
+    filename = img_url.split("/")[-1]
+    base_url = "https://marionrosete.github.io/ScarcePH/public/carousel/"+filename
