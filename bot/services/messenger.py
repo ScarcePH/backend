@@ -7,7 +7,7 @@ def reply(sender_id, message, quick_replies=QUICK_REPLIES):
 
 
 
-def send_carousel(sender_id, products=None, is_my_order=False):
+def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[]):
     items = []
     if(is_my_order):
         for order in products:
@@ -69,8 +69,10 @@ def send_carousel(sender_id, products=None, is_my_order=False):
             "payload": {
                 "template_type": "generic",
                 "elements": items
-            }
-        }
+            },
+            
+        },
+        "quick_replies": quick_replies
     }
 
     send_template_message(sender_id, message)

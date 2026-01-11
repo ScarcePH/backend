@@ -112,13 +112,6 @@ def get_auto_reply(message, sender_id,state):
                     send_carousel(sender_id, order, is_my_order=True)
                 else:
                     messender_reply(sender_id, "You don’t have any active orders.")
-            if 'available pairs' in keyword:
-                pairs = get_all_available_inventory()
-                if pairs.get("found"):
-                    send_carousel(sender_id, pairs["items"])
-                else:
-                    messender_reply(sender_id, "We don't have available pairs currently.")
-                    return None
                                         
             return reply
     return None

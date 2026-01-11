@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from db.models import Inventory, InventoryVariation
 from db.database import db
 import re
@@ -124,21 +125,54 @@ def get_inventory_with_size(name, size):
         "items": result
     }
 
-def get_all_available_inventory():
+def get_all_available_inventory(page=1):
+    per_page=10
+    offset = (page - 1) * per_page
+
     query = (
         Inventory.query
         .join(InventoryVariation)
         .filter(InventoryVariation.status != "sold")
         .options(contains_eager(Inventory.variations))
+        .limit(per_page)
+        .offset(offset)
         .all()
     )
 
 
-    result = [Inventory.to_dict(item) for item in query]    
+    result = [Inventory.to_dict(item) for item in query]
+
+    total = (
+        db.session.query(func.count(Inventory.id))
+        .join(InventoryVariation)
+        .filter(InventoryVariation.status != "sold")
+        .scalar()
+    )
+
+    has_next = page * per_page < total
+    has_prev = page > 1
+
+    buttons = []
+
+    if has_prev:
+        buttons.append({
+            "content_type":"text",
+            "title": "⬅ Previous",
+            "payload": f"PAGE_{page-1}"
+        })
+
+    if has_next:
+        buttons.append({
+            "content_type":"text",
+            "title": "Next ➡",
+            "payload": f"PAGE_{page+1}"
+        })
 
     return {
         "found": len(result)>0,
         "count": len(result),
-        "items": result
+        "items": result,
+        "quick_replies": buttons
+
     }
 

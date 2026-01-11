@@ -13,6 +13,7 @@ class InventoryVariation(db.Model):
     status = db.Column(db.String)
     stock = db.Column(db.Integer, default=0)
     url = db.Column(db.String)
+    spent = db.Column(db.Numeric(10,2))
 
     def to_dict(self):
         return {
@@ -25,5 +26,6 @@ class InventoryVariation(db.Model):
             "status": self.status,
             "stock": self.stock,
             "url": self.url,
+            "spent": self.spent
         }
 
