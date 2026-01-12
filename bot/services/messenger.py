@@ -71,9 +71,10 @@ def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[])
                 "elements": items
             },
             
-        },
-        "quick_replies": quick_replies
+        }
     }
+    if quick_replies and len(quick_replies) > 0:
+        message["quick_replies"] = quick_replies
 
     send_template_message(sender_id, message)
 
