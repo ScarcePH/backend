@@ -9,6 +9,8 @@ def dashboard_summary():
     now = datetime.now()
 
     start_week = now - timedelta(days=now.weekday())
+    start_week = start_week.replace(hour=0, minute=0, second=0, microsecond=0)
+    
     start_last_week = start_week - timedelta(days=7)
 
     start_month = now.replace(day=1)
