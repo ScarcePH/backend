@@ -28,12 +28,13 @@ def get_order(sender_id):
 def get_all_pending_orders(status):
     orders = (
         Order.query
-        .filter(Order.status == status)
         .join(Customers)
-       
-        .all()
     )
-    result = [Order.to_dict(order) for order in orders]
+    if status != 'all':
+        orders = orders.filter(Order.status == status)
+
+
+    result = [Order.to_dict(order) for order in orders.all()]
     return result
 
 def get_all_confirmed_orders():
