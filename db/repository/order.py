@@ -4,7 +4,8 @@ from db.models import Customers, Inventory, InventoryVariation, Payment, Shipmen
 from flask import jsonify
 from bot.services.messenger import send_carousel, reply
 import re
-
+from datetime import datetime
+from bot.utils.date import parse_date
 
 
 
@@ -25,13 +26,24 @@ def get_order(sender_id):
     result = [Order.to_dict(order) for order in orders]
     return result
 
-def get_all_pending_orders(status):
+def get_all_order(status, date_from=None, date_to=None):
     orders = (
         Order.query
         .join(Customers)
     )
+
     if status != 'all':
         orders = orders.filter(Order.status == status)
+
+    if date_from and date_to:
+        orders = orders.filter(
+            Order.created_at.between(
+                parse_date(date_from),
+                parse_date(date_to, end=True)
+            )
+        )
+
+    orders = orders.order_by(Order.created_at.desc())
 
 
     result = [Order.to_dict(order) for order in orders.all()]
