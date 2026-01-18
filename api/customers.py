@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from db.database import db
-from db.repository.customer import save_customer,get_customer,get_customers
+from db.repository.customer import save_customer,get_customers
 from middleware.admin_required import admin_required
 
 customers_bp = Blueprint("customers", __name__)
@@ -14,7 +14,7 @@ def create_customer():
 
 
 
-@customers_bp.route("/customer/get-all", method=["GET"])
+@customers_bp.route("/customer/get-all", methods=["GET"])
 @admin_required(allowed_roles=["super_admin"])
 def get_all_customer():
     customers = get_customers()
