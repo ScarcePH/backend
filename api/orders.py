@@ -10,8 +10,8 @@ orders_bp = Blueprint("orders", __name__)
 @admin_required(allowed_roles=["super_admin"])
 def create_order():
     data = request.json
-    save_order(data)
-    return jsonify({"status": "ok", "order": data})
+    order = save_order(data)
+    return jsonify({"status": "ok", "order": order})
 
 @orders_bp.route("get-order", methods=["GET"])
 @admin_required(allowed_roles=["super_admin"])

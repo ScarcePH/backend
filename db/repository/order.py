@@ -14,7 +14,8 @@ def save_order(data: dict):
     order = Order(**data)
     db.session.add(order)
     db.session.commit()
-    return order
+    res = Order.to_dict(order)
+    return res
 
 def get_order(sender_id):
     orders = (
