@@ -6,7 +6,8 @@ def save_customer(data: dict):
     customer = Customers(**data)
     db.session.add(customer)
     db.session.commit()
-    return customer
+    res = Customers.to_dict(customer)
+    return res
     
 def get_customer(sender_id: str):
     if not sender_id:
@@ -46,3 +47,8 @@ def create_leads(sender_id, item, size):
     db.session.add(lead)
     db.session.commit()
     return lead
+
+def get_customers():
+    customers =  Customers.query.all()
+    result = [Customers.to_dict(order) for order in customers]
+    return result
