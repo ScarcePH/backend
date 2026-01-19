@@ -19,16 +19,17 @@ def confirm_order(sender_id):
         "We'll verify your payment and contact you shortly."
     )
 
-    order = {
+    order_payload = {
         "customer_id": state['customer_id'],
         "inventory_id": state['inventory_id'],
         "variation_id": state["variation_id"],
     }
-    order = save_order(order)
+
+    order = save_order(order_payload)
     payment = {
         "payment_ss": state['payment_ss'],
         "total_amount": state['price'],
-        "order_id": order.id
+        "order_id": order['id']
     }
     save_payment(payment)
     reset_state(sender_id)
