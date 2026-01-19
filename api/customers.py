@@ -10,7 +10,7 @@ customers_bp = Blueprint("customers", __name__)
 def create_customer():
     data = request.json
     record = save_customer(data)
-    return jsonify({"status": "ok", "inventory": record})
+    return jsonify({"status": "ok", "data": record})
 
 
 
