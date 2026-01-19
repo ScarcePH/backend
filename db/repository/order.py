@@ -84,7 +84,14 @@ def get_all_confirmed_orders():
 def update_order(order_id, status, received_payment, cancel_reason, release):
     order = Order.query.get_or_404(order_id)
     payment = Payment.query.filter_by(order_id=order.id).first()
-    if payment:
+    if not payment:
+        payment = Payment(
+            order_id=order.id,
+            received_amount=received_payment,
+            total_amount=order.total_amount  
+        )
+        db.session.add(payment)
+    else:
         payment.received_amount = received_payment
     
     item = InventoryVariation.query.get_or_404(order.variation_id)
