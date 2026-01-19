@@ -1,15 +1,18 @@
 from bot.services.messenger import reply
 from bot.state.manager import reset_state, set_state
 from bot.core.constants import YES_OR_NO
+import re
 
 def handle(sender_id, chat, state):
     item, size = state["item"], state["size"]
 
-    if chat not in ["yes", "y", "no", "n"]:
+    clean = re.sub(r'[^a-zA-Z]', '', chat)
+
+    if clean not in ["yes", "y", "no", "n"]:
         reply(sender_id, f"Please reply with 'Yes' or 'No'.\nDo you want to order '{item}' (Size {size}us)?", YES_OR_NO)
         return
 
-    if chat in ["no", "n"]:
+    if clean in ["no", "n"]:
         reset_state(sender_id)
         reply(sender_id, "No worries! Let me know if you want to check another item.")
         return
