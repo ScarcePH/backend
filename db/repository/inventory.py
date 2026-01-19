@@ -58,13 +58,17 @@ def save_variations(inventory_id: int, variations: list[dict]):
 def get_all_inventory():
     items = Inventory.query.all()
     result = [Inventory.to_dict(item) for item in items]
-    
-    status_order = {"onhand": 0, "preorder": 1, "sold": 2}
-    result.sort(key=lambda item: min(
-        (status_order.get(var["status"], 3) for var in item["variations"]),
-        default=3
-    ))
-    
+    return result
+
+def get_all_available():
+    items = (
+        Inventory.query
+        .join(InventoryVariation)
+        .filter(InventoryVariation.status != "sold")
+        .options(contains_eager(Inventory.variations))
+        .all()
+    )
+    result = [Inventory.to_dict(item) for item in items]
     return result
 
 

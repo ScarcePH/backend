@@ -7,7 +7,8 @@ from db.repository.inventory import (
     get_item_sizes,
     save_variations,
     get_inventory_with_size,
-    get_all_available_inventory
+    get_all_available_inventory,
+    get_all_available
 )
 from middleware.admin_required import admin_required
 
@@ -68,6 +69,13 @@ def fetch_inventory_with_size():
     return get_inventory_with_size(name,size)
 
 @inventory_bp.route("inventory/get-available", methods=["GET"])
+@admin_required(allowed_roles=["super_admin"])
 def test():
     data = get_all_available_inventory()
+    return data
+
+@inventory_bp.route("inventory/get-all-available", methods=["GET"])
+@admin_required(allowed_roles=["super_admin"])
+def get_all_available_item():
+    data = get_all_available()
     return data
