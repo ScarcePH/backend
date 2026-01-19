@@ -21,8 +21,9 @@ class Order(db.Model):
     status = db.Column(db.String, default="pending", index=True)
     
 
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), onupdate=db.func.now())
+
 
     customer = db.relationship("Customers", backref="orders")
     inventory = db.relationship("Inventory", backref="order")
