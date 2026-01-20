@@ -49,7 +49,8 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 60 * 60  # 1 hour
 
 allowed_origins = [
     "http://localhost:5173",
-    "https://scarce-admin.onrender.com"
+    "https://scarce-admin.onrender.com",
+    "https://www.admin.scarceph.com"
 ]
 CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
