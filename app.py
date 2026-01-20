@@ -56,27 +56,13 @@ CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
 jwt = JWTManager(app)
 
-@app.route("/")
-def index():
-    return "Messenger AI bot is live!"
 
-
-# @app.route("/webhook", methods=["GET"])
-# def verify():
-#     if request.args.get("hub.verify_token") == os.environ.get("VERIFY_TOKEN"):
-#         return request.args.get("hub.challenge")
-#     return "Verification failed", 403
 
 @app.route('/privacy-policy')
 def privacy_policy():
     return send_from_directory('static/privacy-policy', 'index.html')
 
 
-
-# @app.route("/test", methods=["POST"])
-# def test_route():
-
-#     return test()
 
 if __name__ == "__main__":
     app.run(debug=True)

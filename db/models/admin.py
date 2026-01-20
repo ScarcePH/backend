@@ -6,7 +6,6 @@ from db.database import db
 
 class Admin(db.Model):
     __tablename__ = "admins"
-    print("argon2 backend:", argon2)
 
 
     id = db.Column(db.Integer, primary_key=True)
