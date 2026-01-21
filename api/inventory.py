@@ -24,7 +24,7 @@ inventory_bp = Blueprint("inventory", __name__)
 def create_inventory():
 
     name = request.form.get("name")
-    price = request.form.get("price")
+    description = request.form.get("description")
     file = request.files["file"]
 
     raw = file.stream.read()
@@ -56,7 +56,7 @@ def create_inventory():
 
     data = {
         "name": name,
-        "price": price,
+        "description": description,
         "image": inv_url
     }
 
