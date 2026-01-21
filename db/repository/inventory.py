@@ -7,11 +7,27 @@ from sqlalchemy.orm import contains_eager
 
 
 def save_inventory(data: dict):
-    inventory = Inventory(**data)
-    db.session.add(inventory)
+
+    inventory_id = data.get("id")
+
+    if inventory_id:
+        inventory = Inventory.query.get(inventory_id)
+
+        if not inventory:
+            raise ValueError("Inventory not found")
+
+        for key, value in data.items():
+            if key != "id":
+                setattr(inventory, key, value)
+
+    else:
+        inventory = Inventory(**data)
+        db.session.add(inventory)
+
     db.session.commit()
-    res = Inventory.to_dict(inventory)
-    return res
+
+    return Inventory.to_dict(inventory)
+
 
 def save_variations(inventory_id: int, variations: list[dict]):
   

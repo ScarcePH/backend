@@ -11,15 +11,61 @@ from db.repository.inventory import (
     get_all_available
 )
 from middleware.admin_required import admin_required
+from services.image.upload import upload
+from services.image.resize import fit_subject_center
+from PIL import Image
+import io
+
 
 inventory_bp = Blueprint("inventory", __name__)
 
-@inventory_bp.route("inventory/create", methods=["POST"])
+@inventory_bp.route("/inventory/create", methods=["POST"])
 @admin_required(allowed_roles=["super_admin"])
 def create_inventory():
-    data = request.json
+
+    name = request.form.get("name")
+    price = request.form.get("price")
+    file = request.files["file"]
+
+    raw = file.stream.read()
+
+    upload_buf = io.BytesIO(raw)
+    process_buf = io.BytesIO(raw)
+
+    inv_url = upload(
+        file=upload_buf,
+        filename=file.filename,
+        content_type=file.content_type,
+        subfolder="inv"
+    )
+
+    img = Image.open(process_buf)
+
+    square = fit_subject_center(img, 1080)
+
+    out = io.BytesIO()
+    square.save(out, format="PNG")
+    out.seek(0)
+
+    upload(
+        file=out,
+        filename=file.filename.replace(".jpg", ".png"),
+        content_type="image/png",
+        subfolder="carousel"
+    )
+
+    data = {
+        "name": name,
+        "price": price,
+        "image": inv_url
+    }
+
     res = save_inventory(data)
-    return jsonify({"data": res, "message": "Inventory created"}),201
+
+    return jsonify({
+        "data": res,
+        "message": "Inventory created"
+    }), 201
 
 
 @inventory_bp.route("/inventory/create-variation", methods=["POST"])
