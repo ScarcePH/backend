@@ -120,7 +120,7 @@ def dashboard_summary():
         .filter(
             Order.status.in_(VALID_STATUS),
             Order.created_at >= start_last_month,
-            Payment.created_at < start_month
+            Order.created_at < start_month
 
         )
         .all()
