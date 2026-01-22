@@ -6,8 +6,8 @@ class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
 
-    received_amount = db.Column(db.Float, default=0.0)
-    total_amount = db.Column(db.Float, default=0.0)
+    received_amount = db.Column(db.Numeric(10,2), default=0)
+    total_amount = db.Column(db.Numeric(10,2), default=0)
     payment_ss = db.Column(db.String)
     payment_method = db.Column(db.String)
     order_id = db.Column(db.Integer, db.ForeignKey("orders.id"))
