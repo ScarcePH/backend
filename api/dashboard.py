@@ -11,12 +11,12 @@ from collections import defaultdict
 dashboard_bp = Blueprint("dashboard", __name__)
 
 @dashboard_bp.route("/dashboard/summary")
-@auth_required(allowed_roles=['super-admin'])
+@auth_required(allowed_roles=['super_admin'])
 def summary_cards():
     return dashboard_summary()
 
 @dashboard_bp.route("/dashboard/bestseller")
-@auth_required(allowed_roles=['super-admin'])
+@auth_required(allowed_roles=['super_admin'])
 def best_selling():
     top_inventory = (
         db.session.query(
