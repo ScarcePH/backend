@@ -10,7 +10,7 @@ from db.repository.inventory import (
     get_all_available_inventory,
     get_all_available
 )
-from middleware.admin_required import admin_required
+from middleware.auth_required import auth_required
 from services.image.upload import upload
 from services.image.resize import fit_subject_center
 from PIL import Image
@@ -20,7 +20,7 @@ import io
 inventory_bp = Blueprint("inventory", __name__)
 
 @inventory_bp.route("/inventory/create", methods=["POST"])
-@admin_required(allowed_roles=["super_admin"])
+@auth_required(allowed_roles=["super_admin"])
 def create_inventory():
 
     name = request.form.get("name")
@@ -69,7 +69,7 @@ def create_inventory():
 
 
 @inventory_bp.route("/inventory/create-variation", methods=["POST"])
-@admin_required(allowed_roles=["super_admin"])
+@auth_required(allowed_roles=["super_admin"])
 def create_variation():
     payload = request.json
     if not isinstance(payload, dict):
@@ -87,14 +87,14 @@ def create_variation():
 
 
 @inventory_bp.route("inventory/get-all", methods=["GET"])
-@admin_required(allowed_roles=["super_admin"])
+@auth_required(allowed_roles=["super_admin"])
 def fetch_inventory():
     return get_all_inventory()
 
 
 
 @inventory_bp.route("inventory/get-size", methods=["GET"])
-@admin_required(allowed_roles=["super_admin"])
+@auth_required(allowed_roles=["super_admin"])
 def fetch_item_by_size():
     size = request.args.get('size') 
     if not size:
@@ -103,7 +103,7 @@ def fetch_item_by_size():
     return get_item_sizes(size)
 
 @inventory_bp.route("inventory/get-name-size", methods=["GET"])
-@admin_required(allowed_roles=["super_admin"])
+@auth_required(allowed_roles=["super_admin"])
 def fetch_inventory_with_size():
     name = request.args.get('name') 
     size = request.args.get('size') 
@@ -115,13 +115,13 @@ def fetch_inventory_with_size():
     return get_inventory_with_size(name,size)
 
 @inventory_bp.route("inventory/get-available", methods=["GET"])
-@admin_required(allowed_roles=["super_admin"])
+@auth_required(allowed_roles=["super_admin"])
 def test():
     data = get_all_available_inventory()
     return data
 
 @inventory_bp.route("inventory/get-all-available", methods=["GET"])
-@admin_required(allowed_roles=["super_admin"])
+@auth_required(allowed_roles=["super_admin"])
 def get_all_available_item():
     data = get_all_available()
     return data

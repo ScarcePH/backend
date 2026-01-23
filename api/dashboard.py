@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from middleware.admin_required import admin_required
+from middleware.auth_required import auth_required
 from db.repository.dashboard import dashboard_summary
 from db.database import db
 from db.models import Inventory, InventoryVariation
@@ -11,12 +11,12 @@ from collections import defaultdict
 dashboard_bp = Blueprint("dashboard", __name__)
 
 @dashboard_bp.route("/dashboard/summary")
-@admin_required()
+@auth_required(allowed_roles=['super-admin'])
 def summary_cards():
     return dashboard_summary()
 
 @dashboard_bp.route("/dashboard/bestseller")
-@admin_required()
+@auth_required(allowed_roles=['super-admin'])
 def best_selling():
     top_inventory = (
         db.session.query(
