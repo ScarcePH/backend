@@ -5,6 +5,8 @@ from .inventory_variation import InventoryVariation
 from .leads import Leads
 from .payment import Payment
 from .shipment import Shipment
+from .cart import Cart
+from .cart_item import CartItem
 
 __all__ = [
     "Customers",
@@ -14,4 +16,7 @@ __all__ = [
     "Leads",
     "Payment",
     "Shipment",
+    "Cart",
+    "CartItem"
+
 ]

@@ -121,7 +121,6 @@ def test():
     return data
 
 @inventory_bp.route("inventory/get-all-available", methods=["GET"])
-@auth_required(allowed_roles=["super_admin"])
 def get_all_available_item():
     data = get_all_available()
     return data
