@@ -27,10 +27,20 @@ def webhook():
     signature = request.headers.get("Paymongo-Signature")
     payload = request.get_data()  # RAW body
 
+
+    # signature = base64.b64encode(
+    #     hmac.new(PAYMENT_EVENT_SECRET.encode(), payload, hashlib.sha256).digest()
+    # ).decode()
+
+    # return signature
+
+   
+
+
     if not signature or not verify_signature(payload, signature):
         abort(400, "Invalid signature")
 
     data = request.json
     print("EVENT RECEIVED:", data)
 
-    return {"status": "ok"}
+    return {"status": "ok" ,"data":data}
