@@ -3,13 +3,14 @@ from flask_jwt_extended import create_access_token
 from db.models.users import User
 from middleware.auth_required import auth_required
 from db.database import db
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
+from db.models.token_blocklist import TokenBlocklist
 
 
 
 auth_bp = Blueprint("auth", __name__)
 
-@auth_bp.route("/login", methods=["POST"])
+@auth_bp.route("/auth/login", methods=["POST"])
 def login():
     data = request.json
     email = data.get("email")
@@ -18,7 +19,7 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if not user or not user.check_password(password):
-        return jsonify({"message": "Invalid credentials"}), 401
+        return jsonify({"message": "Invalid credentials"}), 422
 
     access_token = create_access_token(
         identity=str(user.id),
@@ -31,7 +32,7 @@ def login():
     })
 
 
-@auth_bp.route("/register", methods=["POST"])
+@auth_bp.route("/auth/register", methods=["POST"])
 def register_user():
     data = request.get_json() or {}
     try:
@@ -57,7 +58,14 @@ def register_user():
 @auth_bp.route("/auth/validate", methods=["GET"])
 @auth_required()
 def protected():
-    return jsonify({"status": True, "message":"Authenticated"}), 200
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+     
+    return jsonify({
+        "status": True, 
+        "message":"Authenticated",
+        "user": User.to_dict(user)
+    }), 200
 
 @auth_bp.route("/auth/change-password", methods=["POST"])
 @auth_required()
@@ -68,9 +76,20 @@ def change_password():
     if not new_password or not password:
         return jsonify({"message": "Password and new password are required"}), 400
     user_id = get_jwt_identity()
-    admin = User.query.get(user_id)
-    if not admin or not admin.check_password(password):
+    user = User.query.get(user_id)
+    if not user or not user.check_password(password):
         return jsonify({"message": "Incorrect password"}), 401
-    admin.set_password(new_password)
+    user.set_password(new_password)
     db.session.commit()
     return jsonify({"message": "Password change successfully"}), 200
+
+
+@auth_bp.route("/auth/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+
+    db.session.add(TokenBlocklist(jti=jti))
+    db.session.commit()
+
+    return jsonify({"message": "Successfully logged out"}), 200
