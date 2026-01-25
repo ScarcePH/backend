@@ -8,14 +8,18 @@ from bot.core.constants import IMAGE_SENT_MSG,BOT_TAG
 from bot.services.carousel_pagination import handle_carousel_postback
 import os
 
+import hmac
+import hashlib
+from flask import abort
+
 bot_bp = Blueprint("bot", __name__)
 PAGE_APP_ID = str(os.environ.get("PAGE_APP_ID"))
 
 @bot_bp.route("/webhook", methods=["POST"])
 def webhook():
+    verify_signature(request)  
+
     data = request.json
-    print("!WEBHOOK EVENT!")
-    print(data)
 
     if data.get("object") != "page":
         return {"status": "ignored"}
@@ -87,3 +91,23 @@ def verify():
     if request.args.get("hub.verify_token") == os.environ.get("VERIFY_TOKEN"):
         return request.args.get("hub.challenge")
     return "Verification failed", 403
+
+
+
+
+APP_SECRET = os.environ.get("APP_SECRET")
+
+def verify_signature(req):
+    signature = req.headers.get("X-Hub-Signature-256")
+    if not signature:
+        abort(403)
+
+    payload = req.get_data()
+    expected = "sha256=" + hmac.new(
+        APP_SECRET.encode(),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(expected, signature):
+        abort(403)
