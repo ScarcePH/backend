@@ -14,6 +14,8 @@ PAGE_APP_ID = str(os.environ.get("PAGE_APP_ID"))
 @bot_bp.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
+    print("!WEBHOOK EVENT!")
+    print(data)
 
     if data.get("object") != "page":
         return {"status": "ignored"}
