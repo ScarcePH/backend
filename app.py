@@ -9,7 +9,6 @@ from flask_migrate import upgrade
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from db.models.token_blocklist import TokenBlocklist
-from payment.webhook import payments_bp
 
 
 
@@ -36,7 +35,6 @@ with app.app_context():
 # Bot POST webhook
 # -------------------------------
 app.register_blueprint(bot_bp)
-app.register_blueprint(payments_bp)
 
 # -------------------------------
 # API blueprints
