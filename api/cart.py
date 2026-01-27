@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from db.models import Inventory, InventoryVariation, Cart, CartItem
 from uuid import uuid4
 from db.database import db
@@ -105,9 +105,11 @@ def add_to_cart():
 def get_cart():
     customer_id = None
     try:
+        verify_jwt_in_request(optional=True)
         customer_id = get_jwt_identity()
-    except:
-        pass
+    except Exception:
+        customer_id = None
+
 
     guest_id = request.cookies.get("guest_id")
 
@@ -131,11 +133,13 @@ def get_cart():
         total += subtotal
 
         cart_items.append({
+            "inventory_id": inventory.id,
+            "variation_id": variation.id,
             "inventory_name": inventory.name,
-            "condition": variation.condition if variation else None,
+            "condition": variation.condition,
+            "size": variation.size,
             "price": float(item.price_at_add),
             "quantity": item.quantity,
-     
             "subtotal": subtotal
         })
 

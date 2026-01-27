@@ -5,7 +5,7 @@ from middleware.auth_required import auth_required
 from db.database import db
 from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
 from db.models.token_blocklist import TokenBlocklist
-
+from api.helpers.cart import merge_guest_cart_to_user
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -25,11 +25,16 @@ def login():
         identity=str(user.id),
         additional_claims={"role": user.role}
     )
-
-    return jsonify({
+    guest_id = request.cookies.get("guest_id")
+    print('guest_id',guest_id)
+    merge_guest_cart_to_user(user.id, guest_id)
+    response = jsonify({
         "access_token": access_token,
         "user": User.to_dict(user)
     })
+    response.set_cookie("guest_id", "", expires=0)
+    return response
+
 
 
 @auth_bp.route("/auth/register", methods=["POST"])
@@ -49,10 +54,16 @@ def register_user():
         additional_claims={"role": user.role}
     )
 
-    return jsonify({
+    guest_id = request.cookies.get("guest_id")
+    print('guest_id',guest_id)
+    merge_guest_cart_to_user(user.id, guest_id)
+
+    response =  jsonify({
         "access_token": access_token,
         "user": User.to_dict(user)
     })
+    response.set_cookie("guest_id", "", expires=0)
+    return response
 
 
 @auth_bp.route("/auth/validate", methods=["GET"])
