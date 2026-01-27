@@ -1,4 +1,6 @@
 from db.database import db
+import json
+
 
 class InventoryVariation(db.Model):
     __tablename__ = "inventory_variations"
@@ -16,13 +18,17 @@ class InventoryVariation(db.Model):
     spent = db.Column(db.Numeric(10,2))
 
     def to_dict(self):
+        try:
+            images = json.loads(self.image) if self.image else []
+        except (TypeError, json.JSONDecodeError):
+            images = []
         return {
             "id": self.id,
             "inventory_id": self.inventory_id,
             "condition": self.condition,
             "price": float(self.price) if self.price is not None else None,
             "size": self.size,
-            "image": self.image,
+            "image": images,
             "status": self.status,
             "stock": self.stock,
             "url": self.url,

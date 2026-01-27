@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, json
 from db.database import db
 from db.models.inventory import Inventory
 from db.repository.inventory import (
@@ -15,6 +15,10 @@ from services.image.upload import upload
 from services.image.resize import fit_subject_center
 from PIL import Image
 import io
+import time
+import random
+import os
+from api.helpers.inventory import upload_variation_img
 
 
 inventory_bp = Blueprint("inventory", __name__)
@@ -32,9 +36,12 @@ def create_inventory():
     upload_buf = io.BytesIO(raw)
     process_buf = io.BytesIO(raw)
 
+    ext = os.path.splitext(file.filename)[1]
+    new_filename = f"{int(time.time())}_{random.randint(1000,9999)}{ext}"
+
     inv_url = upload(
         file=upload_buf,
-        filename=file.filename,
+        filename=new_filename,
         content_type=file.content_type,
         subfolder="inv"
     )
@@ -47,9 +54,12 @@ def create_inventory():
     square.save(out, format="PNG")
     out.seek(0)
 
+    ext = os.path.splitext(file.filename)[1]
+    new_filename = f"{int(time.time())}_{random.randint(1000,9999)}{ext}"
+
     upload(
         file=out,
-        filename=file.filename.replace(".jpg", ".png"),
+        filename=new_filename,
         content_type="image/png",
         subfolder="carousel"
     )
@@ -70,19 +80,32 @@ def create_inventory():
 
 @inventory_bp.route("/inventory/create-variation", methods=["POST"])
 @auth_required(allowed_roles=["super_admin"])
+
 def create_variation():
-    payload = request.json
-    if not isinstance(payload, dict):
-        return jsonify({"message": "Payload must be a JSON object"}), 400
-    inventory_id = payload.get("inventory_id", None)
-    variations = payload.get("variations", None)
-    if not inventory_id or not variations:
-        return jsonify({"message": "Invalid JSON payload"}), 400
- 
+
+    variations_raw = request.form.get("variations")
+    inventory_id = request.form.get("inventory_id")
+
+    if not variations_raw or not inventory_id:
+        return jsonify({"message": "Missing variations or inventory_id"}), 400
+
+    try:
+        variations = json.loads(variations_raw)
+    except json.JSONDecodeError:
+        return jsonify({"message": "Invalid JSON in variations"}), 400
+
+    if not isinstance(variations, list):
+        return jsonify({"message": "Variations must be a list"}), 400
+
+    files = request.files
+    variations = upload_variation_img(variations,files)
     data = save_variations(inventory_id, variations)
+
     return jsonify({
-        "message": "Variations synchronized successfully"
-    }), 201
+        "message": "Variations created successfully",
+        "data": data,
+    }), 200
+
  
 
 
