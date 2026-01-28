@@ -21,9 +21,10 @@ def add_to_cart():
 
     customer_id = None
     try:
+        verify_jwt_in_request(optional=True)
         customer_id = get_jwt_identity()
-    except:
-        pass
+    except Exception:
+        customer_id = None
 
 
     guest_id = request.cookies.get("guest_id")
