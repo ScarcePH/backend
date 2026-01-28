@@ -19,21 +19,21 @@ def add_to_cart():
     if not inventory_id or quantity < 1:
         return jsonify({"message": "Invalid data"}), 400
 
-    customer_id = None
+    user_id = None
     try:
         verify_jwt_in_request(optional=True)
-        customer_id = get_jwt_identity()
+        user_id = get_jwt_identity()
     except Exception:
-        customer_id = None
+        user_id = None
 
 
     guest_id = request.cookies.get("guest_id")
-    if not customer_id and not guest_id:
+    if not user_id and not guest_id:
         guest_id = str(uuid4())
 
 
 
-    cart = get_or_create_cart(customer_id=customer_id, guest_id=guest_id)
+    cart = get_or_create_cart(user_id=user_id, guest_id=guest_id)
 
 
     inventory = Inventory.query.get_or_404(inventory_id)
@@ -104,17 +104,17 @@ def add_to_cart():
 
 @cart_bp.route("/cart/get", methods=["GET"])
 def get_cart():
-    customer_id = None
+    user_id = None
     try:
         verify_jwt_in_request(optional=True)
-        customer_id = get_jwt_identity()
+        user_id = get_jwt_identity()
     except Exception:
-        customer_id = None
+        user_id = None
 
 
     guest_id = request.cookies.get("guest_id")
 
-    cart = get_active_cart(customer_id=customer_id, guest_id=guest_id)
+    cart = get_active_cart(user_id=user_id, guest_id=guest_id)
 
     if not cart:
         return jsonify({

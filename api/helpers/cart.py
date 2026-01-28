@@ -2,15 +2,15 @@ from db.models import Inventory, InventoryVariation, Cart, CartItem
 from db.database import db
 
 
-def get_or_create_cart(customer_id=None, guest_id=None):
-    if customer_id:
-        cart = Cart.query.filter_by(customer_id=customer_id, is_active=True).first()
+def get_or_create_cart(user_id=None, guest_id=None):
+    if user_id:
+        cart = Cart.query.filter_by(user_id=user_id, is_active=True).first()
     else:
         cart = Cart.query.filter_by(guest_id=guest_id, is_active=True).first()
 
     if not cart:
         cart = Cart(
-            customer_id=customer_id,
+            user_id=user_id,
             guest_id=guest_id
         )
         db.session.add(cart)
@@ -19,9 +19,9 @@ def get_or_create_cart(customer_id=None, guest_id=None):
     return cart
 
 
-def get_active_cart(customer_id=None, guest_id=None):
-    if customer_id:
-        return Cart.query.filter_by(customer_id=customer_id, is_active=True).first()
+def get_active_cart(user_id=None, guest_id=None):
+    if user_id:
+        return Cart.query.filter_by(user_id=user_id, is_active=True).first()
 
     if guest_id:
         return Cart.query.filter_by(guest_id=guest_id, is_active=True).first()
@@ -29,17 +29,17 @@ def get_active_cart(customer_id=None, guest_id=None):
     return None
 
 
-def merge_guest_cart_to_user(customer_id, guest_id):
-    if not customer_id or not guest_id:
+def merge_guest_cart_to_user(user_id, guest_id):
+    if not user_id or not guest_id:
         return False
 
     guest_cart = Cart.query.filter_by(guest_id=guest_id, is_active=True).first()
     if not guest_cart:
         return False
 
-    user_cart = Cart.query.filter_by(customer_id=customer_id, is_active=True).first()
+    user_cart = Cart.query.filter_by(user_id=user_id, is_active=True).first()
     if not user_cart:
-        user_cart = Cart(customer_id=customer_id, is_active=True)
+        user_cart = Cart(user_id=user_id, is_active=True)
         db.session.add(user_cart)
         db.session.flush() 
 

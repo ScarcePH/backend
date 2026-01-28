@@ -7,9 +7,8 @@ class Cart(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    customer_id = db.Column(db.Integer, db.ForeignKey("customers.id"), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
 
-    # for guest users (store session UUID in cookie)
     guest_id = db.Column(db.String(36), nullable=True, index=True)
 
     is_active = db.Column(db.Boolean, default=True)
@@ -20,4 +19,4 @@ class Cart(db.Model):
     items = db.relationship("CartItem", backref="cart", cascade="all, delete-orphan")
 
     def owner(self):
-        return self.customer_id or self.guest_id
+        return self.user_id or self.guest_id
