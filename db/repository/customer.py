@@ -11,14 +11,14 @@ def save_customer(data: dict):
     
 def get_customer(sender_id: str):
     if not sender_id:
-        return {'error': 'sender_id parameter is required'}, 400
+        return {'message': 'sender_id parameter is required'}, 400
 
     customer = Customers.query.filter_by(sender_id=sender_id).first()
     return customer
 
 def update_customer(sender_id: str, name: str = None, phone: str = None, address: str = None):
     if not sender_id:
-        return {'error': 'sender_id parameter is required'}, 400
+        return {'message': 'sender_id parameter is required'}, 400
     
     customer = Customers.query.filter_by(sender_id=sender_id).first()
     if not customer:
@@ -36,7 +36,7 @@ def update_customer(sender_id: str, name: str = None, phone: str = None, address
 
 def create_leads(sender_id, item, size):
     if not sender_id:
-        return {'error': 'sender_id parameter is required'}, 400
+        return {'message': 'sender_id parameter is required'}, 400
     
     data= {
         "sender_id":sender_id,

@@ -54,7 +54,11 @@ allowed_origins = [
     "https://scarce-admin.onrender.com",
     "https://www.admin.scarceph.com"
 ]
-CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
+CORS(
+    app, 
+    supports_credentials=True,
+    resources={r"/api/*": {"origins": allowed_origins}}
+)
 
 jwt = JWTManager(app)
 

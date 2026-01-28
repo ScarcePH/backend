@@ -17,7 +17,7 @@ def add_to_cart():
     quantity = int(data.get("quantity", 1))
 
     if not inventory_id or quantity < 1:
-        return jsonify({"error": "Invalid data"}), 400
+        return jsonify({"message": "Invalid data"}), 400
 
     customer_id = None
     try:
@@ -42,12 +42,12 @@ def add_to_cart():
         variation = InventoryVariation.query.get_or_404(variation_id)
 
         if variation.stock < quantity:
-            return jsonify({"error": "Not enough stock"}), 400
+            return jsonify({"message": "Not enough stock"}), 400
 
         price = variation.price
     else:
         if inventory.stock < quantity:
-            return jsonify({"error": "Not enough stock"}), 400
+            return jsonify({"message": "Not enough stock"}), 400
 
         price = inventory.price
 
@@ -64,7 +64,7 @@ def add_to_cart():
 
         if new_quantity > variation.stock:
             return jsonify({
-                "error": max_limit_msg,
+                "message": max_limit_msg,
                 "available_stock": variation.stock
             }), 400
 
@@ -74,7 +74,7 @@ def add_to_cart():
 
         if quantity > variation.stock:
             return jsonify({
-                "error": max_limit_msg,
+                "message": max_limit_msg,
                 "available_stock": variation.stock
             }), 400
         
