@@ -148,7 +148,7 @@ def get_all_available_item():
     data = get_all_available()
     return data
 
-@inventory_bp.route("inventory/edit", methods=["POST"])
+@inventory_bp.route("/inventory/edit", methods=["POST"])
 @auth_required(allowed_roles=["super_admin"])
 def edit():
     data = request.json
