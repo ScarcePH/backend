@@ -147,3 +147,36 @@ def test():
 def get_all_available_item():
     data = get_all_available()
     return data
+
+@inventory_bp.route("inventory/edit", methods=["POST"])
+@auth_required(allowed_roles=["super_admin"])
+def edit():
+    data = request.json
+    inventory_id = data.get("inventory_id")
+    name = data.get("name")
+    description = data.get("description")
+
+    if not inventory_id:
+        return jsonify({"message": "inventory_id is required"}), 400
+    
+    inventory = Inventory.query.get(inventory_id)
+        
+    if not inventory:
+        return jsonify({"message": "pair not found"}), 404
+
+    if name is not None:
+        inventory.name = name
+
+    if description is not None:
+        inventory.description = description
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Inventory updated successfully",
+        "inventory": {
+            "id": inventory.id,
+            "name": inventory.name,
+            "description": inventory.description
+        }
+    }), 200
