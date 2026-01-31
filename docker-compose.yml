@@ -1,0 +1,7 @@
+services:
+  app:
+    image: scarce_backend
+    ports:
+      - "10000:10000"
+    env_file:
+      - .env
