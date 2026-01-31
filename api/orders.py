@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
 from db.database import db
 from db.models import Order
-from db.repository.order import save_order, get_order, get_all_order, update_order, get_all_confirmed_orders
+from db.repository.order import save_order, get_order, get_order_by_status, update_order
 from middleware.auth_required import auth_required
+from services.ocr.ocr_service import ocr_is_valid_payment_today
+
 
 orders_bp = Blueprint("orders", __name__)
 
@@ -22,7 +24,7 @@ def get_order_by_senderid():
 
 @orders_bp.route("orders/get-all", methods=["GET"])
 @auth_required(allowed_roles=["super_admin"])
-def pending_orders():
+def get_order_status():
     status = request.args.get('status')
     if(not status):
        return jsonify({"message": "url param status required"}),422 
@@ -31,15 +33,9 @@ def pending_orders():
     date_to = request.args.get("to")
 
 
-    pending_orders = get_all_order(status, date_from, date_to)
+    pending_orders = get_order_by_status(status, date_from, date_to)
     return pending_orders
 
-
-@orders_bp.route("orders/get-all-confirmed", methods=["GET"])
-@auth_required(allowed_roles=["super_admin"])
-def get_all():
-    pending_orders = get_all_confirmed_orders()
-    return pending_orders
 
 @orders_bp.route("orders/update-status", methods=["POST"])
 @auth_required(allowed_roles=["super_admin"])
@@ -57,3 +53,9 @@ def update():
     return order
 
 
+
+@orders_bp.route("/upload-proof", methods=["POST"])
+def upload_proof():
+    file = request.files["image"]
+    result = ocr_is_valid_payment_today(file.read())
+    return jsonify(result)

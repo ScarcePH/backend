@@ -31,7 +31,7 @@ NOTIFY_USER =[
     f"🔔 Notify me"
 ]
 
-SAVED_ADDRESS=[
+USE_OR_CHANGE_ADDRESS=[
     "Use this address",
     "Change address",
 ]

@@ -1,6 +1,6 @@
 from db.models import Order
 from db.database import db
-from db.models import Customers, Inventory, InventoryVariation, Payment, Shipment
+from db.models import Customers, Inventory, InventoryVariation, Payment, Shipment, CheckoutSession, OrderItem
 from flask import jsonify
 from bot.services.messenger import send_carousel, reply
 import re
@@ -10,12 +10,45 @@ from bot.utils.date import parse_date
 
 
 
-def save_order(data: dict):
-    order = Order(**data)
+def save_order(checkout_session_id: str):
+    session = CheckoutSession.query.get_or_404(checkout_session_id)
+
+    # idempotency: prevent duplicate orders
+    if session.orders:
+        return session.orders.to_dict()
+
+    # Only admin-approved sessions can become orders
+    if session.status != "approved":
+        raise Exception("Checkout session not approved by admin")
+
+
+    order = Order(
+        customer_id=session.customer_id,
+        checkout_session_id=session.id,
+        total_price=session.total_price,
+        status="confirmed"
+    )
+
     db.session.add(order)
+    db.session.flush()  
+
+    for item in session.items_json:
+        order_item = OrderItem(
+            order_id=order.id,
+            inventory_id=item["inventory_id"],
+            variation_id=item["variation_id"],
+            quantity=item["qty"],
+            price_at_purchase=item["price"]
+        )
+        db.session.add(order_item)
+
+        variation = InventoryVariation.query.get(item["variation_id"])
+        variation.stock -= item["qty"]
+
+    session.status = "paid"
     db.session.commit()
-    res = Order.to_dict(order)
-    return res
+
+    return order.to_dict()
 
 def get_order(sender_id):
     orders = (
@@ -27,7 +60,7 @@ def get_order(sender_id):
     result = [Order.to_dict(order) for order in orders]
     return result
 
-def get_all_order(status, date_from=None, date_to=None):
+def get_order_by_status(status, date_from=None, date_to=None):
     orders = (
         Order.query
         .join(Customers)
@@ -50,36 +83,7 @@ def get_all_order(status, date_from=None, date_to=None):
     result = [Order.to_dict(order) for order in orders.all()]
     return result
 
-def get_all_confirmed_orders():
-    orders = (
-        Order.query
-        .filter(Order.status == "confirmed")
-        .join(Customers)
-        .all()
-    )
-    result = [Order.to_dict(order) for order in orders]
 
-    orders = []
-    total = 0
-    balance = 0
-    for order in result:
-        total += order['variation']['price']
-        balance += order['payment']['to_settle'] if order['payment'] else 0
-        orders.append({
-            "customer": order['customer']['name'],
-            "pair": re.sub(r"nike sb stefan janoski\s*", "", order['inventory']['name'], flags=re.IGNORECASE),
-            "tracking": order['shipment']['tracking'] if order['shipment'] else "pending",
-            "balance": order['payment']['to_settle'] if order['payment'] else None,
-            "amount": order['variation']['price'],
-            "size": order['variation']['size'],
-        })
-       
-
-    return {
-        "orders":orders,
-        "total_balance":balance,
-        "total":total
-    }
 
 def update_order(order_id, status, received_payment, cancel_reason, release):
     order = Order.query.get_or_404(order_id)
