@@ -32,7 +32,6 @@ def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[])
             items.append(carousel)
     else:
         for inventory in products:
-            print("[ITEM]:",inventory)
             for variation in inventory['variations']:
                 carousel={
                     "title":inventory['name'],
@@ -81,5 +80,5 @@ def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[])
 
 def coursel_image(img_url):
     filename = img_url.split("/")[-1]
-    image = "https://marionrosete.github.io/ScarcePH/public/carousel/"+filename
+    image = "https://www.img.scarceph.com/carousel/"+filename
     return image
