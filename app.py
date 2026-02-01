@@ -28,27 +28,8 @@ app.config.from_object(Config)
 db.init_app(app)
 migrate.init_app(app, db)
 
-with app.app_context():
-    try:
-        upgrade()
-        if os.environ.get("RUN_SCRIPT") == "true":
-            print("Running one-time Order → OrderItem migration...")
-            orders_to_order_items()
-            generate_checkout_session()
-            print("One-time migration done.")
-        print("✓ Migrations applied successfully.")
 
-    except Exception as e:
-        print("✗ Migration failed:", e)
-# ---------------------------------
-# AUTO-RUN MIGRATIONS ON STARTUP
-# ---------------------------------
-# with app.app_context():
-#     try:
-#         upgrade()
-#         print("✓ Migrations applied successfully.")
-#     except Exception as e:
-#         print("✗ Migration failed:", e)
+
 # -------------------------------
 # Bot POST webhook
 # -------------------------------
