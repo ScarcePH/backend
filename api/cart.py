@@ -3,7 +3,7 @@ from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from db.models import Inventory, InventoryVariation, Cart, CartItem
 from uuid import uuid4
 from db.database import db
-from api.helpers.cart import get_or_create_cart, get_active_cart
+from api.helpers.cart import get_or_create_cart, get_active_cart, get_current_customer_context
 
 
 cart_bp = Blueprint("cart", __name__)
@@ -19,21 +19,11 @@ def add_to_cart():
     if not inventory_id or quantity < 1:
         return jsonify({"message": "Invalid data"}), 400
 
-    user_id = None
-    try:
-        verify_jwt_in_request(optional=True)
-        user_id = get_jwt_identity()
-    except Exception:
-        user_id = None
-
-
-    guest_id = request.cookies.get("guest_id")
-    if not user_id and not guest_id:
-        guest_id = str(uuid4())
+    ctx = get_current_customer_context()
 
 
 
-    cart = get_or_create_cart(user_id=user_id, guest_id=guest_id)
+    cart = get_or_create_cart(user_id=ctx["user_id"], guest_id=ctx["guest_id"])
 
 
     inventory = Inventory.query.get_or_404(inventory_id)
@@ -92,8 +82,8 @@ def add_to_cart():
 
     response = jsonify({"message": "Item added to cart"})
 
-    if guest_id:
-        response.set_cookie("guest_id", guest_id, httponly=True, max_age=60*60*24*30)
+    if ctx["new_guest_created"]:
+        response.set_cookie("guest_id", ctx["guest_id"], max_age=60*60*24*30)
 
     return response, 200
 
@@ -104,17 +94,9 @@ def add_to_cart():
 
 @cart_bp.route("/cart/get", methods=["GET"])
 def get_cart():
-    user_id = None
-    try:
-        verify_jwt_in_request(optional=True)
-        user_id = get_jwt_identity()
-    except Exception:
-        user_id = None
+    ctx = get_current_customer_context()
 
-
-    guest_id = request.cookies.get("guest_id")
-
-    cart = get_active_cart(user_id=user_id, guest_id=guest_id)
+    cart = get_active_cart(user_id=ctx["user_id"], guest_id=ctx["guest_id"])
 
     if not cart:
         return jsonify({

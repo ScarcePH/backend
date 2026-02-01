@@ -7,6 +7,8 @@ from .payment import Payment
 from .shipment import Shipment
 from .cart import Cart
 from .cart_item import CartItem
+from .checkout_session import CheckoutSession
+from .order_item import OrderItem
 
 __all__ = [
     "Customers",
@@ -17,6 +19,8 @@ __all__ = [
     "Payment",
     "Shipment",
     "Cart",
-    "CartItem"
+    "CartItem",
+    "CheckoutSession",
+    "OrderItem"
 
 ]

@@ -1,6 +1,5 @@
 from bot.services.messenger import reply,send_carousel
 from bot.services.nlp import get_gpt_analysis
-from bot.services.stock import ask_item, stock_confirmation
 from bot.state.manager import set_handover,set_state,reset_state
 
 from db.repository.inventory import get_item_sizes,get_inventory_with_size
@@ -50,5 +49,5 @@ def handle(sender_id, chat, state):
             "item": item
         })
 
-        reply(sender_id, f"What size for '{item}'?")
+        reply(sender_id, f"What size in us for '{item}'?")
         return "ok"

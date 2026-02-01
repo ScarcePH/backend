@@ -33,7 +33,8 @@ def handle(sender_id, chat, state):
         "inventory_id": state['inventory_id'],
         "variation_id": state["variation_id"],
     }
-    order = save_order(order)
+    checkout_session_id = state['checkout_session_id']
+    order = save_order(checkout_session_id)
     payment = {
         "payment_ss": state['payment_ss'],
         "total_amount": state['price'],

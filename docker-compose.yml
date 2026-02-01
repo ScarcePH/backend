@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  backend:
+    build: .
+    image: scarce_backend
+    ports:
+      - "10000:10000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    command: flask run --host=0.0.0.0 --port=5001 --reload

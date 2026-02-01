@@ -2,6 +2,8 @@ from bot.services.messenger import reply
 from bot.state.manager import reset_state, set_state
 from bot.core.constants import YES_OR_NO
 import re
+from db.repository.customer_service import get_or_create_customer
+from db.repository.checkout import start_checkout
 
 def handle(sender_id, chat, state):
     item, size = state["item"], state["size"]
@@ -17,13 +19,22 @@ def handle(sender_id, chat, state):
         reply(sender_id, "No worries! Let me know if you want to check another item.")
         return
 
-    # set_state(sender_id, {**state, "state": "handle_payment_method"})
-    # reply(sender_id, "Great! how do you wish to pay? (COD/COP/Pay now)\n\nNOTE: COD/COP requires ₱500 deposit.", None)
+    customer = get_or_create_customer(sender_id=sender_id)
+
+    checkout_item = {
+        "inventory_id":state["inventory_id"],
+        "variation_id": state["variation_id"],
+        "qty":1
+    }
+    
+    checkout = start_checkout(sender_id=customer.sender_id, items=checkout_item)
+
 
     set_state(sender_id, {
         **state,
         "state": "handle_verify_payment",
-        "payment_method": "gcash"
+        "payment_method": "gcash",
+        "checkout_session_id":checkout["checkout_session_id"]
     })
 
     to_pay = "1000" if state['status'] == 'preorder' else state['price']

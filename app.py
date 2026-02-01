@@ -10,6 +10,9 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from db.models.token_blocklist import TokenBlocklist
 
+from scripts.migration import orders_to_order_items, generate_checkout_session
+
+
 
 
 load_dotenv()
@@ -20,17 +23,13 @@ load_dotenv()
 app = Flask(__name__)
 app.config.from_object(Config)
 
+
+
 db.init_app(app)
 migrate.init_app(app, db)
-# ---------------------------------
-# AUTO-RUN MIGRATIONS ON STARTUP
-# ---------------------------------
-with app.app_context():
-    try:
-        upgrade()
-        print("✓ Migrations applied successfully.")
-    except Exception as e:
-        print("✗ Migration failed:", e)
+
+
+
 # -------------------------------
 # Bot POST webhook
 # -------------------------------
