@@ -137,7 +137,7 @@ def get_inventory_with_size(name, size):
     inventories = query.all()
 
 
-    result = [Inventory.to_dict(item) for item in query]
+    result = [Inventory.to_dict(item) for item in inventories]
 
     return {
         "found": len(result)>0,

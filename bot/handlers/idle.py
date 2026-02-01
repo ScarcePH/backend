@@ -49,5 +49,5 @@ def handle(sender_id, chat, state):
             "item": item
         })
 
-        reply(sender_id, f"What size for '{item}'?")
+        reply(sender_id, f"What size in us for '{item}'?")
         return "ok"
