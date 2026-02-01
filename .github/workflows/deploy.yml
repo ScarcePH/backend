@@ -30,7 +30,8 @@ jobs:
     - name: Build and push image
       run: |
         gcloud builds submit \
-          --tag ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend
+          --tag ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
+          --async
 
     - name: Run migrations
       run: |
