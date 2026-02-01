@@ -1,6 +1,5 @@
 from bot.utils.extract_size import extract_size
 from bot.services.messenger import reply,send_carousel
-from bot.services.stock import stock_confirmation
 from db.repository.inventory import get_inventory_with_size
 from bot.core.constants import NOTIFY_USER
 from bot.state.manager import set_state
