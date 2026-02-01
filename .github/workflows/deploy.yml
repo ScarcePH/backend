@@ -1,4 +1,4 @@
-name: Deploy to Cloud Run
+name: Deploy to Cloud Run (Docker)
 
 on:
   push:
@@ -23,22 +23,26 @@ jobs:
       with:
         project_id: ${{ secrets.PROJECT_ID }}
 
-    - name: Build and push Docker image
+    - name: Configure Docker for Artifact Registry
+      run: |
+        gcloud auth configure-docker asia-docker.pkg.dev
+
+    - name: Build and push image
       run: |
         gcloud builds submit \
-          --tag us-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend
+          --tag asia-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend
 
-    - name: Run database migrations
+    - name: Run migrations
       run: |
         docker run --rm \
           -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-          us-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
+          asia-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
           alembic upgrade head
 
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy scarce-backend \
-          --image us-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
+          --image asia-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
           --region ${{ secrets.REGION }} \
           --platform managed \
           --allow-unauthenticated
