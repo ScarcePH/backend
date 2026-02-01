@@ -25,24 +25,24 @@ jobs:
 
     - name: Configure Docker for Artifact Registry
       run: |
-        gcloud auth configure-docker asia-docker.pkg.dev
+        gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev
 
     - name: Build and push image
       run: |
         gcloud builds submit \
-          --tag asia-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend
+          --tag ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend
 
     - name: Run migrations
       run: |
         docker run --rm \
           -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-          asia-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
+          ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
           alembic upgrade head
 
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy scarce-backend \
-          --image asia-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
+          --image ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
           --region ${{ secrets.REGION }} \
           --platform managed \
           --allow-unauthenticated
