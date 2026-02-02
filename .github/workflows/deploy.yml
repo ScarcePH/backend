@@ -44,3 +44,17 @@ jobs:
           --region ${{ secrets.REGION }} \
           --platform managed \
           --allow-unauthenticated
+
+          
+    - name: Assert deployed image
+      run: |
+        DEPLOYED_IMAGE=$(gcloud run services describe $SERVICE_NAME \
+          --region $REGION \
+          --format="value(spec.template.spec.containers[0].image)")
+        echo "Expected: $IMAGE"
+        echo "Deployed: $DEPLOYED_IMAGE"
+        if [ "$DEPLOYED_IMAGE" != "$IMAGE" ]; then
+          echo "❌ Image mismatch"
+          exit 1
+        fi
+        echo "✅ Correct image deployed"
