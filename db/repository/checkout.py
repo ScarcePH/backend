@@ -5,6 +5,9 @@ from db.models.inventory_variation import InventoryVariation
 from db.repository.customer_service import get_or_create_customer
 
 def start_checkout(items: list[dict], user_id=None, guest_id=None, sender_id=None):
+    
+    if not isinstance(items, list):
+        return {"error": "items must be a list of objects"}
 
     customer = get_or_create_customer(
         user_id=user_id,

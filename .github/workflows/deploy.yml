@@ -37,7 +37,8 @@ jobs:
     - name: Build and push image
       run: |
         gcloud builds submit \
-          --tag $IMAGE
+          --tag $IMAGE \
+          --quiet
 
     # 🧬 Run migrations using the SAME image
     - name: Run migrations

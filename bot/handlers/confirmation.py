@@ -21,13 +21,16 @@ def handle(sender_id, chat, state):
 
     customer = get_or_create_customer(sender_id=sender_id)
 
-    checkout_item = {
+    checkout_item = [{
         "inventory_id":state["inventory_id"],
         "variation_id": state["variation_id"],
         "qty":1
-    }
+    }]
     
-    checkout = start_checkout(sender_id=customer.sender_id, items=[checkout_item])
+    checkout = start_checkout(
+        items=checkout_item,   
+        sender_id=customer.sender_id
+    )
 
 
     set_state(sender_id, {
