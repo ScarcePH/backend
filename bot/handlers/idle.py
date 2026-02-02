@@ -3,7 +3,7 @@ from bot.services.nlp import get_gpt_analysis
 from bot.state.manager import set_handover,set_state,reset_state
 
 from db.repository.inventory import get_item_sizes,get_inventory_with_size
-from bot.core.constants import QUICK_REPLIES,NOTIFY_USER
+from bot.core.constants import QUICK_REPLIES,NOTIFY_USER,SIZE_QUICK_REPLIES
 
 def handle(sender_id, chat, state):
     analysis = get_gpt_analysis(chat)
@@ -49,5 +49,5 @@ def handle(sender_id, chat, state):
             "item": item
         })
 
-        reply(sender_id, f"What size in us for '{item}'?")
+        reply(sender_id, f"What size are you looking for '{item}'? (US Format) ", SIZE_QUICK_REPLIES)
         return "ok"

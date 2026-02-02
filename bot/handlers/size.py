@@ -1,7 +1,7 @@
 from bot.utils.extract_size import extract_size
 from bot.services.messenger import reply,send_carousel
 from db.repository.inventory import get_inventory_with_size
-from bot.core.constants import NOTIFY_USER
+from bot.core.constants import NOTIFY_USER, SIZE_QUICK_REPLIES
 from bot.state.manager import set_state
 
 def handle(sender_id, chat_lower, state):
@@ -20,5 +20,8 @@ def handle(sender_id, chat_lower, state):
             "item": item
         })
         return "ok"
+    
 
-        ##NEXT STEP IF NOT AVAILABLE SAVE TO LEADS AND NOTIFY IF AVAILABLE
+    reply(sender_id, "What size are you looking for? (US Format)", SIZE_QUICK_REPLIES)
+
+

@@ -27,7 +27,7 @@ def handle(sender_id, chat, state):
         "qty":1
     }
     
-    checkout = start_checkout(sender_id=customer.sender_id, items=checkout_item)
+    checkout = start_checkout(sender_id=customer.sender_id, items=[checkout_item])
 
 
     set_state(sender_id, {
