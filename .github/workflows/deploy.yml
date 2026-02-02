@@ -36,7 +36,7 @@ jobs:
     - name: Run migrations
       run: |
         docker run --rm \
-          -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+          -e DB_URI="${{ secrets.DB_URI }}" \
           ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
           alembic upgrade head
 
