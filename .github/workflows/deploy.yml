@@ -31,17 +31,18 @@ jobs:
 
     - name: Configure Docker for Artifact Registry
       run: |
+        echo "REGION=$REGION"
         gcloud auth configure-docker "$REGION-docker.pkg.dev"
 
-    - name: Build and push image (debug)
+    - name: Build Docker image
       run: |
-        echo "REGION=$REGION"
-        echo "PROJECT_ID=$PROJECT_ID"
-        echo "IMAGE=$IMAGE"
-        gcloud builds submit . --tag "$IMAGE"
+        echo "Building image: $IMAGE"
+        docker build -t "$IMAGE" .
 
-    - name: Pull image for migrations
-      run: docker pull "$IMAGE"
+    - name: Push Docker image
+      run: |
+        echo "Pushing image: $IMAGE"
+        docker push "$IMAGE"
 
     - name: Run migrations
       run: |
