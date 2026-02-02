@@ -41,7 +41,7 @@ jobs:
         gcloud builds submit . \
           --tag "$IMAGE" \
           --quiet \
-          --no-stream-logs
+          --suppress-logs
 
     - name: Pull image for migrations
       run: docker pull $IMAGE
