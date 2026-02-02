@@ -1,26 +1,33 @@
-FROM python:3.9-slim
+# ---- base ----
+FROM python:3.9.18-slim AS base
 
-# Install system dependencies (tesseract + OpenCV runtime deps)
-RUN apt-get update && apt-get install -y \
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# System deps for OCR
+RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
-WORKDIR /app
+# ---- builder ----
+FROM base AS builder
 
-# Copy requirements first (for caching)
 COPY requirements.txt .
 
-# Install python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip \
+ && pip install --prefix=/install --no-cache-dir -r requirements.txt
 
-# Copy project files
+# ---- runtime ----
+FROM base AS runtime
+
+COPY --from=builder /install /usr/local
 COPY . .
 
-# Expose port (Render uses 10000 by default)
-EXPOSE 10000
+ENV PORT=8080
+EXPOSE 8080
 
-# Start Flask app with gunicorn
-CMD ["sh", "-c", "gunicorn -b 0.0.0.0:$PORT app:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]

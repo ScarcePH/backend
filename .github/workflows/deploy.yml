@@ -34,17 +34,16 @@ jobs:
         project_id: ${{ secrets.PROJECT_ID }}
 
     - name: Configure Docker for Artifact Registry
-      run: |
-        echo "PROJECT_ID=$PROJECT_ID"
-        echo "REGION=$REGION"
-        gcloud auth configure-docker $REGION-docker.pkg.dev
+      run: gcloud auth configure-docker $REGION-docker.pkg.dev
 
     - name: Build and push image
       run: |
-        echo "IMAGE=$IMAGE"
         gcloud builds submit . \
           --tag "$IMAGE" \
           --quiet
+
+    - name: Pull image for migrations
+      run: docker pull $IMAGE
 
     - name: Run migrations
       run: |
@@ -61,8 +60,18 @@ jobs:
           --platform managed \
           --allow-unauthenticated
 
-    - name: Verify deployed image
+    - name: Assert deployed image
       run: |
-        gcloud run services describe $SERVICE_NAME \
+        DEPLOYED_IMAGE=$(gcloud run services describe $SERVICE_NAME \
           --region $REGION \
-          --format="value(spec.template.spec.containers[0].image)"
+          --format="value(spec.template.spec.containers[0].image)")
+
+        echo "Expected: $IMAGE"
+        echo "Deployed: $DEPLOYED_IMAGE"
+
+        if [ "$DEPLOYED_IMAGE" != "$IMAGE" ]; then
+          echo "❌ Image mismatch"
+          exit 1
+        fi
+
+        echo "✅ Correct image deployed"
