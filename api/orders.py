@@ -59,3 +59,8 @@ def upload_proof():
     file = request.files["image"]
     result = ocr_is_valid_payment_today(file.read())
     return jsonify(result)
+
+
+@orders_bp.route("/test-only", methods=["GET"])
+def testonly():
+    return "WORKING"
