@@ -68,7 +68,7 @@ def check_if_token_revoked(jwt_header, jwt_payload):
 
 
 
-@app.route('/privacy-policy')
+@app.route('/privacy-policy123')
 def privacy_policy():
     return send_from_directory('static/privacy-policy', 'index.html')
 
