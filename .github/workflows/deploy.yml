@@ -33,13 +33,12 @@ jobs:
       run: |
         gcloud auth configure-docker "$REGION-docker.pkg.dev"
 
-    - name: Build and push image
+    - name: Build and push image (debug)
       run: |
-        echo "Building $IMAGE"
-        gcloud builds submit . \
-          --tag "$IMAGE" \
-          --quiet \
-          --suppress-logs
+        echo "REGION=$REGION"
+        echo "PROJECT_ID=$PROJECT_ID"
+        echo "IMAGE=$IMAGE"
+        gcloud builds submit . --tag "$IMAGE"
 
     - name: Pull image for migrations
       run: docker pull "$IMAGE"
