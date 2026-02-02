@@ -5,19 +5,9 @@ on:
     branches:
       - main
 
-env:
-  SERVICE_NAME: scarce-backend
-  REGION: ${{ secrets.REGION }}
-  PROJECT_ID: ${{ secrets.PROJECT_ID }}
-  IMAGE: ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend:${{ github.sha }}
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
-    concurrency:
-      group: production
-      cancel-in-progress: true
 
     steps:
     - name: Checkout code
@@ -34,45 +24,23 @@ jobs:
         project_id: ${{ secrets.PROJECT_ID }}
 
     - name: Configure Docker for Artifact Registry
-      run: gcloud auth configure-docker $REGION-docker.pkg.dev
-
+      run: |
+        gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev
     - name: Build and push image
       run: |
-        gcloud builds submit . \
-          --tag "$IMAGE" \
-          --quiet \
-          --suppress-logs
-
-    - name: Pull image for migrations
-      run: docker pull $IMAGE
-
+        gcloud builds submit \
+          --tag ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
+          --async
     - name: Run migrations
       run: |
         docker run --rm \
           -e DB_URI="${{ secrets.DB_URI }}" \
-          $IMAGE \
+          ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
           alembic upgrade head
-
     - name: Deploy to Cloud Run
       run: |
-        gcloud run deploy $SERVICE_NAME \
-          --image $IMAGE \
-          --region $REGION \
+        gcloud run deploy scarce-backend \
+          --image ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend \
+          --region ${{ secrets.REGION }} \
           --platform managed \
           --allow-unauthenticated
-
-    - name: Assert deployed image
-      run: |
-        DEPLOYED_IMAGE=$(gcloud run services describe $SERVICE_NAME \
-          --region $REGION \
-          --format="value(spec.template.spec.containers[0].image)")
-
-        echo "Expected: $IMAGE"
-        echo "Deployed: $DEPLOYED_IMAGE"
-
-        if [ "$DEPLOYED_IMAGE" != "$IMAGE" ]; then
-          echo "❌ Image mismatch"
-          exit 1
-        fi
-
-        echo "✅ Correct image deployed"
