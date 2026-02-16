@@ -43,3 +43,5 @@ YES_OR_NO=[
 
 SIZE_QUICK_REPLIES = ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"]
 
+PAYMENT_METHOD=["Full Payment", "COD", "COP"]
+

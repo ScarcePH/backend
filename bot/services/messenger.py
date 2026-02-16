@@ -10,22 +10,40 @@ def reply(sender_id, message, quick_replies=QUICK_REPLIES):
 def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[]):
     items = []
     if(is_my_order):
-        for order in products:
+        for order in products or []:
+            order_items = order.get("items") or []
+            if not order_items:
+                continue
+
+            first_item = order_items[0]
+            inventory = first_item.get("inventory") or {}
+            variation = first_item.get("variation") or {}
+            payment = order.get("payment") or {}
+            shipment = order.get("shipment")
+
             buttons = []
-            if order['shipment']:
+            if shipment and shipment.get("tracking"):
                 buttons.append({
                     "type": "web_url",
                     "title": "Track Shipment",
-                    "url": TRACK + order['shipment']['tracking']
+                    "url": TRACK + shipment["tracking"]
                 })
-            carousel={
-                "title": f"{ str(order['status']).upper()} ORDER",
-                "subtitle": (
-                    f"{order['inventory']['name']} ({order['variation']['size']}us) | "
-                    f"Bal: ₱{order['payment']['to_settle']} | "
-                    f"{order['shipment']['status'] if order['shipment'] else ''}"
-                ),
-                "image_url": coursel_image(order['inventory']['image']),
+
+            balance = payment.get("to_settle")
+            if balance is None:
+                balance = order.get("total_price", 0)
+
+            subtitle_parts = [
+                f"{inventory.get('name', 'Item')} ({variation.get('size', '')}us)",
+                f"Bal: ₱{balance}",
+            ]
+            if shipment and shipment.get("status"):
+                subtitle_parts.append(shipment["status"])
+
+            carousel = {
+                "title": f"{ str(order.get('status', '')).upper()} ORDER",
+                "subtitle": " | ".join([part for part in subtitle_parts if part]),
+                "image_url": coursel_image(inventory.get("image", "")),
             }
             if buttons:
                 carousel["buttons"] = buttons

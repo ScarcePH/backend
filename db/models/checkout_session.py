@@ -28,6 +28,7 @@ class CheckoutSession(db.Model):
             "approved",         # admin approved payment
             "rejected",         # admin rejected screenshot
             "expired",          # session expired
+            "added_by_admin",   # manually add by admin
             name="checkout_status"
         ),
         nullable=False,
@@ -51,15 +52,18 @@ class CheckoutSession(db.Model):
         return datetime.utcnow() > self.expires_at
 
     def submit_proof(self, image_url: str):
-        if self.status != "pending":
-            raise ValueError("Cannot submit proof in current state")
+        # if self.status != "pending":
+        #     raise ValueError("Cannot submit proof in current state")
         self.proof_image_url = image_url
         self.status = "proof_submitted"
 
     def approve(self):
-        if self.status != "proof_submitted":
-            raise ValueError("Only proof_submitted sessions can be approved")
-        self.status = "approved"
+        if self.status == "added_by_admin":
+            self.status = "added_by_admin"
+        else:
+            if self.status != "proof_submitted":
+                raise ValueError("Only proof_submitted sessions can be approved")
+            self.status = "approved"
 
     def reject(self):
         if self.status != "proof_submitted":

@@ -3,11 +3,15 @@ version: "3.8"
 services:
   backend:
     build: .
-    image: scarce_backend
+    image: scarceph-backend
     ports:
       - "5001:5001"
     env_file:
       - .env
     volumes:
       - .:/app
+      - ~/.config/gcloud:/root/.config/gcloud
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /root/.config/gcloud/application_default_credentials.json
     command: flask run --host=0.0.0.0 --port=5001
+

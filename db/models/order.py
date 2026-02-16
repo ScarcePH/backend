@@ -9,13 +9,13 @@ class Order(db.Model):
 
     customer_id = db.Column(db.Integer, db.ForeignKey("customers.id"), nullable=False)
 
-    inventory_id = db.Column(
-        db.Integer, db.ForeignKey("inventory.id"), nullable=False
-    )
+    # inventory_id = db.Column(
+    #     db.Integer, db.ForeignKey("inventory.id"), nullable=False
+    # )
 
-    variation_id = db.Column(
-        db.Integer, db.ForeignKey("inventory_variations.id"), nullable=False
-    )
+    # variation_id = db.Column(
+    #     db.Integer, db.ForeignKey("inventory_variations.id"), nullable=False
+    # )
 
     checkout_session_id = db.Column(
         UUID(as_uuid=True),
@@ -45,6 +45,7 @@ class Order(db.Model):
             "total_price": float(self.total_price),
             "items": [item.to_dict() for item in self.items],
             "payment": self.payment.to_dict() if self.payment else None,
+            "customer": self.customer.to_dict() if self.customer else None,
             "shipment": self.shipment.to_dict() if self.shipment else None,
             "created_at": self.created_at.isoformat(),
         }

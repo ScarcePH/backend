@@ -2,7 +2,11 @@ from db.models import Customers
 from db.database import db
 
 
-def get_or_create_customer(user_id=None, guest_id=None, sender_id=None):
+def get_or_create_customer(customer_id=None, user_id=None, guest_id=None, sender_id=None):
+    if customer_id:
+        customer = Customers.query.filter_by(id=customer_id).first()
+        if customer:
+            return customer
     if sender_id:
         customer = Customers.query.filter_by(sender_id=sender_id).first()
         if customer:

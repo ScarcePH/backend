@@ -1,16 +1,13 @@
-from flask import Flask, request, send_from_directory
+from flask import Flask, send_from_directory
 from dotenv import load_dotenv
 from bot.webhook_handler import bot_bp
-from api import customers_bp, orders_bp, inventory_bp, auth_bp, dashboard_bp, cart_bp
+from api import customers_bp, orders_bp, inventory_bp, auth_bp, dashboard_bp, cart_bp, checkout_bp
 from db.database import db, migrate
 from config import Config
 import os
-from flask_migrate import upgrade
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from db.models.token_blocklist import TokenBlocklist
-
-from scripts.migration import orders_to_order_items, generate_checkout_session
 
 
 
@@ -21,6 +18,18 @@ load_dotenv()
 
 
 app = Flask(__name__)
+
+allowed_origins = [
+    "http://localhost:5173",
+    "https://scarceph.com",
+    "https://www.scarceph.com"
+]
+CORS(
+    app, 
+    supports_credentials=True,
+    resources={r"/api/*": {"origins": allowed_origins}}
+)
+
 app.config.from_object(Config)
 
 
@@ -44,6 +53,12 @@ app.register_blueprint(inventory_bp, url_prefix="/api")
 app.register_blueprint(auth_bp, url_prefix="/api")
 app.register_blueprint(dashboard_bp, url_prefix="/api")
 app.register_blueprint(cart_bp, url_prefix="/api")
+app.register_blueprint(checkout_bp, url_prefix="/api")
+
+# -------------------------------
+# WORKERS
+# -------------------------------
+
 
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 60 * 60  # 1 hour
@@ -68,7 +83,7 @@ def check_if_token_revoked(jwt_header, jwt_payload):
 
 
 
-@app.route('/privacy-policy123')
+@app.route('/privacy-policy')
 def privacy_policy():
     return send_from_directory('static/privacy-policy', 'index.html')
 

@@ -1,30 +1,29 @@
-# ---- base ----
-FROM python:3.9.18-slim AS base
+# ---------- builder ----------
+FROM python:3.11-slim AS builder
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-WORKDIR /app
-
-# System deps for OCR
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    tesseract-ocr \
-    libgl1 \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
-
-# ---- builder ----
-FROM base AS builder
+WORKDIR /install
 
 COPY requirements.txt .
 
 RUN pip install --upgrade pip \
- && pip install --prefix=/install --no-cache-dir -r requirements.txt
+ && pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# ---- runtime ----
-FROM base AS runtime
 
+# ---------- runtime ----------
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Copy installed Python packages
 COPY --from=builder /install /usr/local
+
+# Copy application source
 COPY . .
 
 ENV PORT=8080

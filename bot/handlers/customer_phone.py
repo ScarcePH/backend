@@ -2,8 +2,9 @@ from bot.services.messenger import reply
 from bot.state.manager import reset_state
 from bot.core.constants import CONFIRM_HEADER
 from db.repository.customer import save_customer,get_customer,update_customer
-from db.repository.order import save_order
-from db.repository.payment import save_payment
+from bot.state.manager import set_state
+from bot.services.confirm_order import confirm_order
+
 
 def handle(sender_id, chat, state):
     print("[STATE]:", state)
@@ -28,29 +29,12 @@ def handle(sender_id, chat, state):
         phone,
         state["customer_address"]
     )
-    order = {
-        "customer_id": customer.id,
-        "inventory_id": state['inventory_id'],
-        "variation_id": state["variation_id"],
-    }
-    checkout_session_id = state['checkout_session_id']
-    order = save_order(checkout_session_id)
-    payment = {
-        "payment_ss": state['payment_ss'],
-        "total_amount": state['price'],
-        "order_id": order.id
-    }
-    save_payment(payment)
 
-    msg = (
-        f"{CONFIRM_HEADER}"
-        f"Item: {state['item']}\n"
-        f"Size: {state['size']}\n"
-        f"Price: ₱{state['price']}\n"
-        f"Name: {state['customer_name']}\n"
-        f"Phone: {phone}\n\n"
-        f"Address: {state['customer_address']}\n\n"
-        "We'll verify your payment and contact you shortly."
-    )
+    set_state(sender_id, {
+        **state,
+        "customer_address": phone
+    })
 
-    return reply(sender_id, msg)
+    confirm_order(sender_id)
+
+    

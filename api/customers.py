@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from db.database import db
-from db.repository.customer import save_customer,get_customers
+from db.repository.customer import save_customer
 from middleware.auth_required import auth_required
+from db.models import Customers
 
 customers_bp = Blueprint("customers", __name__)
 
@@ -14,8 +15,10 @@ def create_customer():
 
 
 
-@customers_bp.route("/customer/get-all", methods=["GET"])
+@customers_bp.route("/customer/get-all-from-messenger", methods=["GET"])
 @auth_required(allowed_roles=["super_admin"])
 def get_all_customer():
-    customers = get_customers()
-    return jsonify({"status": "ok", "customers": customers})
+    customers = Customers.query.filter(Customers.sender_id.isnot(None)).all()
+    result = [Customers.to_dict(customer) for customer in customers]
+    return jsonify({"status": "ok", "customers": result})
+

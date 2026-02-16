@@ -3,9 +3,13 @@ from bot.state.manager import set_state
 from db.repository.customer import get_customer
 from bot.core.constants import USE_OR_CHANGE_ADDRESS
 import requests
-from services.ocr.ocr_service import ocr_is_valid_payment_today
+from db.repository.ocr_job import ocr_job, wait_for_ocr
+from db.database import db
+from db.models import CheckoutSession
+import mimetypes
 
-MAX_IMAGE_SIZE = 9 * 1024 * 1024  # 9MB
+
+MAX_IMAGE_SIZE = 9 * 1024 * 1024  
 
 
 def handle(sender_id, screenshot, state):
@@ -18,22 +22,41 @@ def handle(sender_id, screenshot, state):
         response = requests.get(screenshot, timeout=10)
         response.raise_for_status()
 
-        content_length = int(response.headers.get("Content-Length", 0))
-        if content_length > MAX_IMAGE_SIZE:
-            reply(sender_id, "Image too large (max 9MB). Please send a smaller screenshot.", None)
+        size = int(response.headers.get("Content-Length", 0))
+        if size > MAX_IMAGE_SIZE:
+            reply(sender_id, "Image too large (max 9MB).", None)
             return
 
-        image_bytes = response.content
+        file_bytes = response.content
 
-    except Exception as e:
-        reply(sender_id, "Failed to process image. Please send the screenshot again.", None)
+        filename = screenshot.split("/")[-1] or "image.jpg"
+        content_type = (
+            response.headers.get("Content-Type")
+            or mimetypes.guess_type(filename)[0]
+            or "image/jpeg"
+        )
+
+    except Exception:
+        reply(sender_id, "Failed to process image.", None)
         return
 
-    result = ocr_is_valid_payment_today(image_bytes)
+    job_info = ocr_job(file_bytes, filename, content_type)
+
+    result = wait_for_ocr(job_info["job_id"])
+
+    if result.get("status") == "TIMEOUT":
+        reply(sender_id, "Processing payment... please wait.", None)
+        return
 
     if not result.get("is_valid"):
         reply(sender_id, "Payment Invalid. Please send again.", None)
         return
+
+    
+    session = CheckoutSession.query.get(state["checkout_session_id"])
+
+    session.submit_proof(screenshot)
+    db.session.commit()
 
     customer = get_customer(sender_id)
 

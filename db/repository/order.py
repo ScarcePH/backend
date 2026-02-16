@@ -13,11 +13,9 @@ from bot.utils.date import parse_date
 def save_order(checkout_session_id: str):
     session = CheckoutSession.query.get_or_404(checkout_session_id)
 
-    # idempotency: prevent duplicate orders
     if session.orders:
         return session.orders.to_dict()
 
-    # Only admin-approved sessions can become orders
     if session.status != "approved":
         raise Exception("Checkout session not approved by admin")
 
@@ -45,7 +43,8 @@ def save_order(checkout_session_id: str):
         variation = InventoryVariation.query.get(item["variation_id"])
         variation.stock -= item["qty"]
 
-    session.status = "paid"
+    # Keep session in a valid enum state after order creation.
+    session.status = "approved"
     db.session.commit()
 
     return order.to_dict()
@@ -93,13 +92,13 @@ def update_order(order_id, status, received_payment, cancel_reason, release):
         payment = Payment(
             order_id=order.id,
             received_amount=received_payment,
-            total_amount=order_data['variation']['price']  
+            total_amount=order.total_price
         )
         db.session.add(payment)
     else:
         payment.received_amount = received_payment
     
-    item = InventoryVariation.query.get_or_404(order.variation_id)
+    item = InventoryVariation.query.get_or_404(order.items[0].variation_id)
     if(status=='confirmed'):
         item.status = "sold"
     if(status=='cancelled' and release):
@@ -132,4 +131,3 @@ def update_order(order_id, status, received_payment, cancel_reason, release):
 
 
     
-

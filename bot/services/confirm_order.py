@@ -19,13 +19,8 @@ def confirm_order(sender_id):
         "We'll verify your payment and contact you shortly."
     )
 
-    order_payload = {
-        "customer_id": state['customer_id'],
-        "inventory_id": state['inventory_id'],
-        "variation_id": state["variation_id"],
-    }
-
-    order = save_order(order_payload)
+    checkout_session_id = state['checkout_session_id']
+    order = save_order(checkout_session_id)
     payment = {
         "payment_ss": state['payment_ss'],
         "total_amount": state['price'],

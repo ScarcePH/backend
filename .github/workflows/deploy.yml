@@ -6,10 +6,10 @@ on:
       - main
 
 env:
-  SERVICE_NAME: scarce-backend
+  SERVICE_NAME: backend
   REGION: ${{ secrets.REGION }}
   PROJECT_ID: ${{ secrets.PROJECT_ID }}
-  IMAGE: ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/scarce-backend:${{ github.sha }}
+  IMAGE: ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/scarce/backend:${{ github.sha }}
 
 jobs:
   deploy:

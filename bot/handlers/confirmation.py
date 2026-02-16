@@ -4,6 +4,8 @@ from bot.core.constants import YES_OR_NO
 import re
 from db.repository.customer_service import get_or_create_customer
 from db.repository.checkout import start_checkout
+from bot.core.constants import PAYMENT_METHOD
+
 
 def handle(sender_id, chat, state):
     item, size = state["item"], state["size"]
@@ -35,15 +37,15 @@ def handle(sender_id, chat, state):
 
     set_state(sender_id, {
         **state,
-        "state": "handle_verify_payment",
+        "state": "handle_payment_method",
         "payment_method": "gcash",
         "checkout_session_id":checkout["checkout_session_id"]
     })
 
-    to_pay = "1000" if state['status'] == 'preorder' else state['price']
+
+    
 
     reply(sender_id,
-        f"Please deposit ₱{to_pay} and send a screenshot.\n\n"
-        "Gcash: 09352894676 – Marion Rosete",
-        None
+        f"Please select prefered payment method: COP, COD, or Full Payment \n\n Note: for COP Please use the address of LBC Branch",
+        PAYMENT_METHOD
     )
