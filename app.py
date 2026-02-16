@@ -87,7 +87,5 @@ def check_if_token_revoked(jwt_header, jwt_payload):
 def privacy_policy():
     return send_from_directory('static/privacy-policy', 'index.html')
 
-
-
 if __name__ == "__main__":
     app.run(debug=False)
