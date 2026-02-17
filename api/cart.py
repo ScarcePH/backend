@@ -88,6 +88,50 @@ def add_to_cart():
     return response, 200
 
 
+@cart_bp.route("/cart/remove", methods=["POST"])
+def remove_from_cart():
+    data = request.json or {}
+
+    inventory_id = data.get("inventory_id")
+    variation_id = data.get("variation_id")
+
+    try:
+        inventory_id = int(inventory_id)
+    except (TypeError, ValueError):
+        return jsonify({"message": "Invalid inventory_id"}), 400
+
+    try:
+        variation_id = int(variation_id) if variation_id is not None else None
+    except (TypeError, ValueError):
+        return jsonify({"message": "Invalid variation_id"}), 400
+
+    ctx = get_current_customer_context()
+    cart = get_active_cart(user_id=ctx["user_id"], guest_id=ctx["guest_id"])
+
+    if not cart:
+        return jsonify({"message": "Cart not found"}), 404
+
+    item = CartItem.query.filter_by(
+        cart_id=cart.id,
+        inventory_id=inventory_id,
+        variation_id=variation_id
+    ).first()
+
+    if not item:
+        return jsonify({"message": "Item not found in cart"}), 404
+
+    db.session.delete(item)
+    db.session.flush()
+
+    remaining_items = CartItem.query.filter_by(cart_id=cart.id).count()
+    if remaining_items == 0:
+        db.session.delete(cart)
+
+    db.session.commit()
+
+    return jsonify({"message": "Item removed from cart"}), 200
+
+
 
 
 
@@ -123,12 +167,12 @@ def get_cart():
             "size": variation.size,
             "price": float(item.price_at_add),
             "quantity": item.quantity,
-            "subtotal": subtotal
+            "subtotal": subtotal,
+            "image":inventory.image
         })
 
     return jsonify({
         "items": cart_items,
         "total": round(total, 2)
     }), 200
-
 
