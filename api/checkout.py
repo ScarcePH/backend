@@ -1,7 +1,5 @@
 from flask import request, jsonify, Blueprint
-from db.models import CheckoutSession, Inventory, Customers,InventoryVariation
-from db.models.inventory_variation import InventoryVariation
-
+from db.models import CheckoutSession, Inventory, Customers, InventoryVariation, Cart
 from db.database import db
 from api.helpers.cart import get_active_cart, get_current_customer_context
 from middleware.auth_required import auth_required
@@ -190,6 +188,17 @@ def ocr_status(job_id,checkout_session_id):
 
             print("TO EMAIL", payload)
             enqueue_email(payload)
+
+        owner_cart = None
+        if customer:
+            if customer.user_id:
+                owner_cart = Cart.query.filter_by(user_id=customer.user_id, is_active=True).first()
+            elif customer.guest_id:
+                owner_cart = Cart.query.filter_by(guest_id=customer.guest_id, is_active=True).first()
+
+        if owner_cart:
+            db.session.delete(owner_cart)
+            db.session.commit()
 
     
 
