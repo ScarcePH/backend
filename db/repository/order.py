@@ -16,7 +16,7 @@ def save_order(checkout_session_id: str):
     if session.orders:
         return session.orders.to_dict()
 
-    if session.status != "approved":
+    if session.status not in ("approved", "added_by_admin"):
         raise Exception("Checkout session not approved by admin")
 
 
@@ -43,8 +43,6 @@ def save_order(checkout_session_id: str):
         variation = InventoryVariation.query.get(item["variation_id"])
         variation.stock -= item["qty"]
 
-    # Keep session in a valid enum state after order creation.
-    session.status = "approved"
     db.session.commit()
 
     return order.to_dict()

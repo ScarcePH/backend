@@ -23,26 +23,6 @@ def create_order():
             "qty": 1
         }
     ]
-    result = start_checkout(
-            customer_id=data["customer_id"],
-            items=items
-    )
-
-    if isinstance(result, tuple):
-        payload, status_code = result
-        return jsonify(payload), status_code
-
-    approve_result, approve_status_code = approve_checkout_session(result["checkout_session_id"], received_amount=data['received_amount'])
-    if approve_status_code != 200:
-        return jsonify(approve_result), approve_status_code
-
-    session = approve_result.get("session")
-    return jsonify({
-        "message": "Order created!",
-        "checkout_session_id": result["checkout_session_id"],
-        "order": approve_result.get("order"),
-        "status": session.status if session else "approved"
-    }), 200
 
     try:
         result = start_checkout(
