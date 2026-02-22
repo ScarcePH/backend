@@ -1,7 +1,5 @@
 from bot.services.messenger import reply
 from bot.state.manager import set_state
-from db.repository.customer import get_customer
-from bot.core.constants import USE_OR_CHANGE_ADDRESS
 import requests
 from db.repository.ocr_job import ocr_job, wait_for_ocr
 from db.database import db
@@ -58,39 +56,11 @@ def handle(sender_id, screenshot, state):
     session.submit_proof(screenshot)
     db.session.commit()
 
-    customer = get_customer(sender_id)
-
-    name = customer.name if customer else None
-    address = customer.address if customer else None
-    phone = customer.phone if customer else None
-
-    if name and address and phone:
-        msg = (
-            "We have your most recent Shipment info.\n"
-            f"Name: {name}\n"
-            f"Address: {address}\n"
-            f"Phone: {phone}\n\n"
-            "Would you like to use this address for your order?"
-        )
-
-        set_state(sender_id, {
-            **state,
-            "state": "repeat_customer_confirm",
-            "customer_name": name,
-            "customer_address": address,
-            "customer_phone": phone,
-            "customer_id": customer.id,
-            "payment_ss": screenshot
-        })
-
-        reply(sender_id, msg, USE_OR_CHANGE_ADDRESS)
-        return
-
     set_state(sender_id, {
         **state,
-        "state": "awaiting_customer_name",
+        "state": "awaiting_customer_email",
         "payment_ss": screenshot
     })
 
-    reply(sender_id, "Great! To proceed with shipping, please provide your full name.", None)
+    reply(sender_id, "Great! Please provide your email address first so we can send your order updates.", None)
     return

@@ -16,7 +16,7 @@ def get_customer(sender_id: str):
     customer = Customers.query.filter_by(sender_id=sender_id).first()
     return customer
 
-def update_customer(sender_id: str, name: str = None, phone: str = None, address: str = None):
+def update_customer(sender_id: str, name: str = None, phone: str = None, address: str = None, email: str = None):
     if not sender_id:
         return {'message': 'sender_id parameter is required'}, 400
     
@@ -30,6 +30,8 @@ def update_customer(sender_id: str, name: str = None, phone: str = None, address
         customer.phone = phone
     if address is not None:
         customer.address = address
+    if email is not None:
+        customer.email = email
 
     db.session.commit()
     return customer
