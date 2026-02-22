@@ -1,12 +1,13 @@
 from bot.services.messenger import reply,send_carousel
-from bot.services.nlp import get_gpt_analysis
+from bot.services.nlp import get_gpt_analysis, push_user_message
 from bot.state.manager import set_handover,set_state,reset_state
 
 from db.repository.inventory import get_item_sizes,get_inventory_with_size
 from bot.core.constants import QUICK_REPLIES,NOTIFY_USER,SIZE_QUICK_REPLIES
 
 def handle(sender_id, chat, state):
-    analysis = get_gpt_analysis(chat)
+    analysis = get_gpt_analysis(chat, sender_id)
+    push_user_message(sender_id, chat)
     intent, item, size = analysis.get("intent"), analysis.get("item"), analysis.get("size")
     draft = analysis.get("reply", "Okay.")
 

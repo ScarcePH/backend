@@ -2,6 +2,7 @@ import json
 import os
 import re
 from bot.utils.gpt_client import call_gpt   
+from bot.utils.redis_client import redis_client
 from bot.core.constants import AUTO_REPLIES
 from bot.state.manager import set_handover,set_state
 from db.repository.customer import create_leads
@@ -12,6 +13,8 @@ from db.repository.inventory import get_all_available_inventory
 
 
 SYSTEM_PROMPT_ANALYSIS = os.environ.get("SYSTEM_PROMPT_ANALYSIS")
+HISTORY_TTL_SECONDS = 1800
+HISTORY_LIMIT = 2
 
 DEFAULT_RESPONSE = {
     "intent": "smalltalk",
@@ -19,6 +22,44 @@ DEFAULT_RESPONSE = {
     "size": "",
     "reply": "Got it."
 }
+
+
+def _history_key(sender_id):
+    return f"chat_history:{sender_id}"
+
+
+def push_user_message(sender_id, message):
+    if not sender_id or not message:
+        return
+
+    try:
+        key = _history_key(sender_id)
+        payload = json.dumps({"role": "user", "content": message.strip()})
+        redis_client.lpush(key, payload)
+        # Keep a little extra room in case limits change
+        redis_client.ltrim(key, 0, 5)
+        redis_client.expire(key, HISTORY_TTL_SECONDS)
+    except Exception:
+        # Never block checkout flow because of memory failures
+        return
+
+
+def get_recent_user_history(sender_id, limit=HISTORY_LIMIT):
+    if not sender_id:
+        return []
+
+    try:
+        key = _history_key(sender_id)
+        raw_items = redis_client.lrange(key, 0, max(limit - 1, 0))
+        messages = []
+        for raw in reversed(raw_items):
+            item = json.loads(raw)
+            if isinstance(item, dict) and item.get("role") == "user" and item.get("content"):
+                messages.append(item.get("content"))
+        return messages
+    except Exception:
+        return []
+
 
 def extract_json(text):
     """
@@ -68,9 +109,16 @@ def sanitize(parsed):
         "reply": reply.strip() if reply else "Okay."
     }
 
-def get_gpt_analysis(user_message):
+def get_gpt_analysis(user_message, sender_id=None):
+    history = get_recent_user_history(sender_id, HISTORY_LIMIT)
+    history_block = "\n".join([f"- {msg}" for msg in history]) if history else "- none"
+
     user_prompt = f"""
-        User: "{user_message}"
+        Recent user messages (oldest to latest, max 2):
+        {history_block}
+
+        Current user message:
+        "{user_message}"
 
         Return JSON:
         {{
