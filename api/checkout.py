@@ -1,5 +1,6 @@
 from flask import request, jsonify, Blueprint, url_for, make_response
-from db.models import CheckoutSession, Inventory, Customers, InventoryVariation, Cart, User
+from db.models import CheckoutSession, Inventory, Customers, InventoryVariation, Cart
+from db.models.users import User
 from db.database import db
 from api.helpers.cart import get_active_cart, get_current_customer_context
 from middleware.auth_required import auth_required
