@@ -1,5 +1,5 @@
-from flask import request, jsonify, Blueprint
-from db.models import CheckoutSession, Inventory, Customers, InventoryVariation, Cart
+from flask import request, jsonify, Blueprint, url_for, make_response
+from db.models import CheckoutSession, Inventory, Customers, InventoryVariation, Cart, User
 from db.database import db
 from api.helpers.cart import get_active_cart, get_current_customer_context
 from middleware.auth_required import auth_required
@@ -14,6 +14,7 @@ import io
 import time
 import random
 import os
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from datetime import datetime
 from db.repository.ocr_job import ocr_job
 from db.models.ocrjob import OCRJob
@@ -24,6 +25,80 @@ from task.email import enqueue_email
 
 
 checkout_bp = Blueprint("checkout", __name__)
+
+
+def _get_admin_serializer():
+    secret = os.environ.get("JWT_SECRET_KEY") or "dev-secret"
+    return URLSafeTimedSerializer(secret, salt="admin-order-approval")
+
+
+def _build_admin_action_urls(session_id: str):
+    serializer = _get_admin_serializer()
+    approve_token = serializer.dumps({
+        "session_id": session_id,
+        "action": "approve"
+    })
+    decline_token = serializer.dumps({
+        "session_id": session_id,
+        "action": "decline"
+    })
+    approve_url = url_for(
+        "checkout.admin_approve_via_email",
+        token=approve_token,
+        _external=True
+    )
+    decline_url = url_for(
+        "checkout.admin_decline_via_email",
+        token=decline_token,
+        _external=True
+    )
+    return approve_url, decline_url
+
+
+def _html_response(title: str, message: str, status_code: int = 200):
+    html = f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{title}</title>
+  <style>
+    body {{
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      color: #111;
+      margin: 0;
+      padding: 40px 16px;
+    }}
+    .card {{
+      max-width: 520px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }}
+    h1 {{
+      margin: 0 0 8px;
+      font-size: 20px;
+    }}
+    p {{
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>{title}</h1>
+    <p>{message}</p>
+  </div>
+</body>
+</html>"""
+    response = make_response(html, status_code)
+    response.headers["Content-Type"] = "text/html; charset=utf-8"
+    return response
 
 
 @checkout_bp.route("/checkout/start", methods=["POST"])
@@ -186,8 +261,37 @@ def ocr_status(job_id,checkout_session_id):
                 }
             }
 
-            print("TO EMAIL", payload)
             enqueue_email(payload)
+
+        admin_email = User.query.filter_by(role="super_admin").first().email
+        if admin_email:
+            admin_items = []
+            for item in session.items_json or []:
+                inventory = Inventory.query.get(item.get("inventory_id"))
+                variation = InventoryVariation.query.get(item["variation_id"])
+                admin_items.append({
+                    "name": inventory.name if inventory else "Item",
+                    "size": f"{variation.size}us" if variation and variation.size else None,
+                    "price": str(variation.price) if variation and variation.price is not None else None
+                })
+
+            approve_url, decline_url = _build_admin_action_urls(str(session.id))
+            admin_payload = {
+                "type": "admin_order_notification",
+                "to": admin_email,
+                "template_variables": {
+                    "order_id": str(session.orders.id) if session.orders else str(session.id),
+                    "customer_name": customer.name if customer and customer.name else "Customer",
+                    "customer_phone": customer.phone if customer else None,
+                    "customer_address": customer.address if customer else None,
+                    "items": admin_items,
+                    "total": str(session.total_price) if session.total_price is not None else None,
+                    "payment_ss": session.proof_image_url,
+                    "approve_url": approve_url,
+                    "decline_url": decline_url
+                }
+            }
+            enqueue_email(admin_payload)
 
         owner_cart = None
         if customer:
@@ -337,6 +441,72 @@ def reject_checkout_session():
         "id": str(session.id),
         "status": session.status
     })
+
+
+@checkout_bp.route("/checkout/admin-approve", methods=["GET"])
+def admin_approve_via_email():
+    token = request.args.get("token")
+    if not token:
+        return _html_response("Missing token", "The approval link is missing a token.", 422)
+
+    serializer = _get_admin_serializer()
+    try:
+        payload = serializer.loads(token, max_age=604800)
+    except SignatureExpired:
+        return _html_response("Link expired", "This approval link has expired.", 400)
+    except BadSignature:
+        return _html_response("Invalid link", "This approval link is invalid.", 400)
+
+    if payload.get("action") != "approve":
+        return _html_response("Invalid link", "This approval link is invalid.", 400)
+
+    session_id = payload.get("session_id")
+    if not session_id:
+        return _html_response("Invalid link", "This approval link is invalid.", 400)
+
+    result, status_code = approve_checkout_session_repo(session_id)
+    if status_code != 200:
+        message = result.get("message") if isinstance(result, dict) else "Unable to approve this order."
+        return _html_response("Approval failed", message, status_code)
+
+    session = result["session"]
+    return _html_response(
+        "Order approved",
+        f"Checkout session {session.id} has been approved."
+    )
+
+
+@checkout_bp.route("/checkout/admin-decline", methods=["GET"])
+def admin_decline_via_email():
+    token = request.args.get("token")
+    if not token:
+        return _html_response("Missing token", "The decline link is missing a token.", 422)
+
+    serializer = _get_admin_serializer()
+    try:
+        payload = serializer.loads(token, max_age=604800)
+    except SignatureExpired:
+        return _html_response("Link expired", "This decline link has expired.", 400)
+    except BadSignature:
+        return _html_response("Invalid link", "This decline link is invalid.", 400)
+
+    if payload.get("action") != "decline":
+        return _html_response("Invalid link", "This decline link is invalid.", 400)
+
+    session_id = payload.get("session_id")
+    if not session_id:
+        return _html_response("Invalid link", "This decline link is invalid.", 400)
+
+    result, status_code = reject_checkout_session_repo(session_id, reject_reason="Declined by admin")
+    if status_code != 200:
+        message = result.get("message") if isinstance(result, dict) else "Unable to decline this order."
+        return _html_response("Decline failed", message, status_code)
+
+    session = result["session"]
+    return _html_response(
+        "Order declined",
+        f"Checkout session {session.id} has been declined."
+    )
 
 
 @checkout_bp.route("/checkout/save-customer", methods=["POST"])

@@ -171,7 +171,6 @@ def approve_checkout_session(session_id, received_amount=0):
         }
         enqueue_email(payload)
 
-    print("MESSENGER LOGIC",isinstance(order, dict), order.get("payment"), order.get("items"))
 
     if session.customer and session.customer.sender_id:
         if isinstance(order, dict) and order.get("items"):
