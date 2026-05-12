@@ -104,7 +104,7 @@ def _html_response(title: str, message: str, status_code: int = 200):
 
 @checkout_bp.route("/checkout/start", methods=["POST"])
 def start_checkout():
-    data = request.json
+    data = request.get_json(silent=True) or {}
     ctx = get_current_customer_context()
 
 
@@ -112,6 +112,9 @@ def start_checkout():
 
     if source == "cart":
         cart =  get_active_cart(user_id=ctx["user_id"], guest_id=ctx["guest_id"])
+        if not cart or not cart.items:
+            return jsonify({"error": "Cart is empty"}), 400
+
         items = [
             {
                 "inventory_id": item.inventory_id,
@@ -141,8 +144,8 @@ def start_checkout():
 
     response =  jsonify(result)
 
-
-    response.set_cookie("guest_id", ctx["guest_id"], max_age=60*60*24*30)
+    if ctx["new_guest_created"] and ctx["guest_id"]:
+        response.set_cookie("guest_id", ctx["guest_id"], max_age=60*60*24*30)
     return response
 
 
