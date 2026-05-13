@@ -41,8 +41,7 @@ class User(db.Model):
         if not EMAIL_REGEX.match(email):
             raise ValueError("Invalid email format")
 
-        if len(password) < 8:
-            raise ValueError("Password must be at least 8 characters")
+        cls.validate_password(password)
 
         # Check for existing user
         if cls.query.filter_by(email=email).first():
@@ -56,6 +55,25 @@ class User(db.Model):
 
         return user
 
+    @staticmethod
+    def validate_password(password: str):
+        if not isinstance(password, str):
+            raise ValueError("Password is required")
+        if len(password) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        if len(password) > 128:
+            raise ValueError("Password must be 128 characters or fewer")
+        if password.strip() != password:
+            raise ValueError("Password cannot start or end with spaces")
+        has_mixed_case = password.lower() != password and password.upper() != password
+        has_number = any(char.isdigit() for char in password)
+        if not has_mixed_case or not has_number:
+            raise ValueError("Password must include uppercase, lowercase, and a number")
+
+    @staticmethod
+    def hash_password(password: str) -> str:
+        return argon2.hash(password)
+
     # -----------------------------
     # Password helpers
     # -----------------------------
@@ -64,7 +82,7 @@ class User(db.Model):
         """
         Hash and store password.
         """
-        self.password_hash = argon2.hash(password)
+        self.password_hash = self.hash_password(password)
 
     def check_password(self, password: str) -> bool:
         """
