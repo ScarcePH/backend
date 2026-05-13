@@ -2,7 +2,7 @@ from sqlalchemy import func
 from db.models import Inventory, InventoryVariation
 from db.database import db
 import re
-from sqlalchemy.orm import contains_eager
+from sqlalchemy.orm import contains_eager, selectinload
 
 
 
@@ -75,6 +75,42 @@ def get_all_inventory():
     items = Inventory.query.all()
     result = [Inventory.to_dict(item) for item in items]
     return result
+
+def _variation_is_available(variation):
+    status = (variation.status or "").lower()
+    return variation.stock > 0 and status not in ("sold", "unavailable", "inactive")
+
+
+def _catalog_item_to_dict(item):
+    data = Inventory.to_dict(item)
+    has_available_variation = any(
+        _variation_is_available(variation)
+        for variation in item.variations
+    )
+    data["is_sold"] = not has_available_variation
+    data["availability_status"] = "sold" if data["is_sold"] else "available"
+    return data
+
+
+def get_public_catalog_inventory():
+    items = (
+        Inventory.query
+        .options(selectinload(Inventory.variations))
+        .all()
+    )
+    items = sorted(
+        items,
+        key=lambda item: (
+            not any(
+                _variation_is_available(variation)
+                for variation in item.variations
+            ),
+            item.id,
+        )
+    )
+    result = [_catalog_item_to_dict(item) for item in items]
+    return result
+
 
 def get_all_available():
     items = (
@@ -195,4 +231,3 @@ def get_all_available_inventory(page=1):
         "quick_replies": buttons
 
     }
-

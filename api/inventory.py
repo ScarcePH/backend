@@ -8,7 +8,8 @@ from db.repository.inventory import (
     save_variations,
     get_inventory_with_size,
     get_all_available_inventory,
-    get_all_available
+    get_all_available,
+    get_public_catalog_inventory
 )
 from middleware.auth_required import auth_required
 from services.image.upload import upload
@@ -146,6 +147,11 @@ def test():
 @inventory_bp.route("inventory/get-all-available", methods=["GET"])
 def get_all_available_item():
     data = get_all_available()
+    return data
+
+@inventory_bp.route("inventory/catalog", methods=["GET"])
+def get_catalog_items():
+    data = get_public_catalog_inventory()
     return data
 
 @inventory_bp.route("/inventory/edit", methods=["POST"])

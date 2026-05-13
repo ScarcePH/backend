@@ -8,6 +8,10 @@ from api.helpers.cart import get_or_create_cart, get_active_cart, get_current_cu
 
 cart_bp = Blueprint("cart", __name__)
 
+def is_variation_sellable(variation):
+    status = (variation.status or "").lower()
+    return variation.stock > 0 and status not in ("sold", "unavailable", "inactive")
+
 @cart_bp.route("/cart/add", methods=["POST"])
 def add_to_cart():
     data = request.json
@@ -32,8 +36,8 @@ def add_to_cart():
     if variation_id:
         variation = InventoryVariation.query.get_or_404(variation_id)
 
-        if variation.stock < quantity:
-            return jsonify({"message": "Not enough stock"}), 400
+        if not is_variation_sellable(variation) or variation.stock < quantity:
+            return jsonify({"message": "Item unavailable"}), 400
 
         price = variation.price
     else:
@@ -175,4 +179,3 @@ def get_cart():
         "items": cart_items,
         "total": round(total, 2)
     }), 200
-

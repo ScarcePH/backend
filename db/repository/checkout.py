@@ -10,6 +10,10 @@ from db.repository.order import save_order
 from bot.services.messenger import send_carousel, reply
 from task.email import enqueue_email
 
+def is_variation_sellable(variation):
+    status = (variation.status or "").lower()
+    return variation.stock > 0 and status not in ("sold", "unavailable", "inactive")
+
 def start_checkout(items: list[dict], customer_id=None, user_id=None, guest_id=None, sender_id=None):
     
     if not isinstance(items, list):
@@ -31,7 +35,7 @@ def start_checkout(items: list[dict], customer_id=None, user_id=None, guest_id=N
     for item in items:
         variation = InventoryVariation.query.get(item["variation_id"])
 
-        if not variation or variation.stock < item["qty"]:
+        if not variation or not is_variation_sellable(variation) or variation.stock < item["qty"]:
             return jsonify({"error": "Item unavailable"}), 400
 
         price = variation.price
