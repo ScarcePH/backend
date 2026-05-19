@@ -8,6 +8,7 @@ import os
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from db.models.token_blocklist import TokenBlocklist
+from api.helpers.rate_limit import register_api_rate_limit
 
 
 
@@ -73,6 +74,7 @@ CORS(
     supports_credentials=True,
     resources={r"/api/*": {"origins": allowed_origins}}
 )
+register_api_rate_limit(app)
 
 jwt = JWTManager(app)
 

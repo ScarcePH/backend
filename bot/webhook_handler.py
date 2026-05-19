@@ -26,7 +26,6 @@ def webhook():
 
     for entry in data.get("entry", []):
         for event in entry.get("messaging", []):
-            print(f"[EVENT]: {event}", flush=True)
             sender_id = event["sender"]["id"]
 
             ## DEVELOPER MODE
@@ -52,8 +51,6 @@ def webhook():
                 if "PAGE" in quick_reply.get('payload','') or "available pairs" in quick_reply.get('payload','').lower(): 
                     handle_carousel_postback(sender_id, quick_reply["payload"])
                     return{"status":"ok"}
-                
-                
 
             if is_in_handover(sender_id):
                 return {"status": "ok"}
