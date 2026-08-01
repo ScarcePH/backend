@@ -9,6 +9,7 @@ from .cart import Cart
 from .cart_item import CartItem
 from .checkout_session import CheckoutSession
 from .order_item import OrderItem
+from .messenger_event import MessengerEvent
 
 __all__ = [
     "Customers",
@@ -21,6 +22,7 @@ __all__ = [
     "Cart",
     "CartItem",
     "CheckoutSession",
-    "OrderItem"
+    "OrderItem",
+    "MessengerEvent",
 
 ]

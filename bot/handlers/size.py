@@ -1,27 +1,19 @@
-from bot.utils.extract_size import extract_size
-from bot.services.messenger import reply,send_carousel
-from db.repository.inventory import get_inventory_with_size
-from bot.core.constants import NOTIFY_USER, SIZE_QUICK_REPLIES
-from bot.state.manager import set_state
+from bot.services.inquiry import handle_inquiry
+from bot.services.messenger import reply
+from bot.core.constants import SIZE_QUICK_REPLIES
+from bot.state.manager import reset_state
 
 def handle(sender_id, chat_lower, state):
-    item = state["item"]
-    size = extract_size(chat_lower)
-    if size:
-        stocks = get_inventory_with_size(item, size)
-        if stocks.get("found"):
-            reply(sender_id, f"We have {item} in size {size}us")
-            send_carousel(sender_id, stocks["items"])
-            return "ok"
-        not_available = f"We Currently Don't have {item} in size {size}us.\n Would like me to notify you when it is available? "
-        reply(sender_id, not_available , NOTIFY_USER)
-        set_state(sender_id, {
-            "size": size,
-            "item": item
-        })
+    item = state.get("item")
+    if not item:
+        reset_state(sender_id)
+        reply(sender_id, "I lost the pair we were checking. What pair are you looking for?", None)
         return "ok"
-    
+
+    result = handle_inquiry(sender_id, chat_lower, state, known_item=item)
+    if result:
+        return result
 
     reply(sender_id, "What size are you looking for? (US Format)", SIZE_QUICK_REPLIES)
-
+    return "ok"
 

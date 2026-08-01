@@ -131,7 +131,6 @@ def fetch_item_by_size():
 def fetch_inventory_with_size():
     name = request.args.get('name') 
     size = request.args.get('size') 
-    print('SIZE:',size)
    
     if not name or not size:
         return {"message": "name and size is required"}, 400

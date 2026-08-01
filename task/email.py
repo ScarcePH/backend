@@ -1,5 +1,6 @@
 import json
 from google.cloud import tasks_v2
+from google.api_core.exceptions import AlreadyExists
 from dotenv import load_dotenv
 load_dotenv()
 import os
@@ -13,7 +14,7 @@ WORKER_URL =  os.environ.get("EMAIL_WORKER_URL")
 client = tasks_v2.CloudTasksClient()
 
 
-def enqueue_email(payload: dict):
+def enqueue_email(payload: dict, task_id=None):
 
     parent = client.queue_path(PROJECT, LOCATION, QUEUE)
 
@@ -26,9 +27,17 @@ def enqueue_email(payload: dict):
         }
     }
 
-    response = client.create_task(
-        parent=parent,
-        task=task
-    )
+    if task_id:
+        task["name"] = f"{parent}/tasks/{task_id}"
+
+    try:
+        response = client.create_task(
+            parent=parent,
+            task=task
+        )
+    except AlreadyExists:
+        if not task_id:
+            raise
+        return task["name"]
 
     return response.name

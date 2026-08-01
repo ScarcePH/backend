@@ -36,6 +36,10 @@ class CheckoutSession(db.Model):
     )
 
     proof_image_url = db.Column(db.String, nullable=True)
+    payment_method = db.Column(db.String(32), nullable=True)
+    expected_payment_amount = db.Column(db.Numeric(10, 2), nullable=True)
+    review_notified_at = db.Column(db.DateTime, nullable=True)
+    rejection_reason = db.Column(db.Text, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     expires_at = db.Column(db.DateTime, nullable=False)
@@ -51,10 +55,14 @@ class CheckoutSession(db.Model):
     def is_expired(self):
         return datetime.utcnow() > self.expires_at
 
-    def submit_proof(self, image_url: str):
-        # if self.status != "pending":
-        #     raise ValueError("Cannot submit proof in current state")
+    def submit_proof(self, image_url: str, payment_method=None, expected_amount=None):
+        if self.status == "proof_submitted":
+            return
+        if self.status != "pending":
+            raise ValueError("Cannot submit proof in current state")
         self.proof_image_url = image_url
+        self.payment_method = payment_method
+        self.expected_payment_amount = expected_amount
         self.status = "proof_submitted"
 
     def approve(self):
@@ -65,10 +73,11 @@ class CheckoutSession(db.Model):
                 raise ValueError("Only proof_submitted sessions can be approved")
             self.status = "approved"
 
-    def reject(self):
+    def reject(self, reason=None):
         if self.status != "proof_submitted":
             raise ValueError("Only proof_submitted sessions can be rejected")
         self.status = "rejected"
+        self.rejection_reason = reason
 
     def __repr__(self):
         return f"<CheckoutSession {self.id} customer={self.customer_id} status={self.status}>"

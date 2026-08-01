@@ -10,7 +10,7 @@ class Payment(db.Model):
     total_amount = db.Column(db.Numeric(10,2), default=0)
     payment_ss = db.Column(db.String)
     payment_method = db.Column(db.String)
-    order_id = db.Column(db.Integer, db.ForeignKey("orders.id"))
+    order_id = db.Column(db.Integer, db.ForeignKey("orders.id"), unique=True)
 
 
     created_at = db.Column(db.DateTime, server_default=db.func.now())

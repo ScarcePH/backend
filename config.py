@@ -19,3 +19,26 @@ class Config:
         "pool_pre_ping": True,
         "connect_args": {"sslmode": "require"},
     }
+
+    @classmethod
+    def validate_required_environment(cls):
+        required = (
+            "APP_SECRET",
+            "VERIFY_TOKEN",
+            "PAGE_ACCESS_TOKEN",
+            "PAGE_APP_ID",
+            "REDIS_URL",
+            "DB_URI",
+            "GOOGLE_CLOUD_PROJECT",
+            "GOOGLE_CLOUD_LOCATION",
+            "MESSENGER_TASK_QUEUE",
+            "MESSENGER_WORKER_URL",
+            "TASKS_SERVICE_ACCOUNT_EMAIL",
+            "EMAIL_WORKER_URL",
+            "JWT_SECRET_KEY",
+        )
+        missing = [name for name in required if not os.environ.get(name)]
+        if missing:
+            raise RuntimeError(
+                "Missing required environment variables: " + ", ".join(missing)
+            )

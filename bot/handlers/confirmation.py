@@ -1,27 +1,33 @@
 from bot.services.messenger import reply
-from bot.state.manager import reset_state, set_state
+from bot.state.manager import reset_state, transition_state
 from bot.core.constants import YES_OR_NO
-import re
+from bot.handlers.guided import reject_input
 from db.repository.customer_service import get_or_create_customer
 from db.repository.checkout import start_checkout
 from bot.core.constants import PAYMENT_METHOD
 
 
 def handle(sender_id, chat, state):
-    item, size = state["item"], state["size"]
-
-    clean = re.sub(r'[^a-zA-Z]', '', chat)
-
-    if clean not in ["yes", "y", "no", "n"]:
-        reply(sender_id, f"Please reply with 'Yes' or 'No'.\nDo you want to order '{item}' (Size {size}us)?", YES_OR_NO)
-        return
-
-    if clean in ["no", "n"]:
+    item, size = state.get("item"), state.get("size")
+    required = ["item", "size", "inventory_id", "variation_id", "price", "status"]
+    if any(state.get(key) is None for key in required):
         reset_state(sender_id)
-        reply(sender_id, "No worries! Let me know if you want to check another item.")
-        return
+        return reply(sender_id, "Your checkout session expired. Please select the pair again to restart.", None)
+
+    action = str(chat or "").strip().upper()
+
+    if action != "ORDER_CONFIRM":
+        return reject_input(
+            sender_id,
+            state,
+            f"Please use the buttons below. Do you want to order '{item}' (US {size})?",
+            YES_OR_NO,
+        )
 
     customer = get_or_create_customer(sender_id=sender_id)
+    if not customer:
+        reset_state(sender_id)
+        return reply(sender_id, "We couldn't start checkout. Please try selecting the pair again.", None)
 
     checkout_item = [{
         "inventory_id":state["inventory_id"],
@@ -34,18 +40,28 @@ def handle(sender_id, chat, state):
         sender_id=customer.sender_id
     )
 
+    if isinstance(checkout, tuple) or not isinstance(checkout, dict) or not checkout.get("checkout_session_id"):
+        reset_state(sender_id)
+        return reply(
+            sender_id,
+            "That pair is no longer available. Please choose another available pair.",
+            None,
+        )
 
-    set_state(sender_id, {
-        **state,
-        "state": "handle_payment_method",
-        "payment_method": "gcash",
-        "checkout_session_id":checkout["checkout_session_id"]
-    })
+
+    transition_state(
+        sender_id,
+        state,
+        "handle_payment_method",
+        expected_input="payment_method",
+        payment_method=None,
+        checkout_session_id=checkout["checkout_session_id"],
+    )
 
 
     
 
     reply(sender_id,
-        f"Please select prefered payment method: COP, COD, or Full Payment \n\n Note: for COP Please use the address of LBC Branch",
+        "Please select your payment method. For COP, use your preferred LBC branch as the delivery address.",
         PAYMENT_METHOD
     )

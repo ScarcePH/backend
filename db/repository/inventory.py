@@ -2,7 +2,13 @@ from sqlalchemy import func
 from db.models import Inventory, InventoryVariation
 from db.database import db
 import re
+from difflib import SequenceMatcher
 from sqlalchemy.orm import contains_eager, selectinload
+
+try:
+    from rapidfuzz import fuzz
+except ImportError:  # pragma: no cover - local fallback if rapidfuzz is unavailable
+    fuzz = None
 
 
 
@@ -41,7 +47,7 @@ def save_variations(inventory_id: int, variations: list[dict]):
     existing_map = {v.id: v for v in existing_variations}
 
     incoming_ids = set()
-    
+
     for data in variations:
         variation_id = data.get("id")
 
@@ -76,9 +82,12 @@ def get_all_inventory():
     result = [Inventory.to_dict(item) for item in items]
     return result
 
-def _variation_is_available(variation):
+def is_variation_sellable(variation):
     status = (variation.status or "").lower()
-    return variation.stock > 0 and status not in ("sold", "unavailable", "inactive")
+    return (variation.stock or 0) > 0 and status not in ("sold", "unavailable", "inactive")
+
+
+_variation_is_available = is_variation_sellable
 
 
 def _catalog_item_to_dict(item):
@@ -116,7 +125,12 @@ def get_all_available():
     items = (
         Inventory.query
         .join(InventoryVariation)
-        .filter(InventoryVariation.status != "sold")
+        .filter(
+            InventoryVariation.stock > 0,
+            ~func.lower(func.coalesce(InventoryVariation.status, "")).in_(
+                ("sold", "unavailable", "inactive")
+            ),
+        )
         .options(contains_eager(Inventory.variations))
         .all()
     )
@@ -138,8 +152,11 @@ def get_item_sizes(size):
         Inventory.query
         .join(InventoryVariation)
         .filter(
-            InventoryVariation.size == size, 
-            InventoryVariation.status != "sold"
+            InventoryVariation.size == size,
+            InventoryVariation.stock > 0,
+            ~func.lower(func.coalesce(InventoryVariation.status, "")).in_(
+                ("sold", "unavailable", "inactive")
+            ),
         )
         .options(contains_eager(Inventory.variations))
         .all()
@@ -154,32 +171,138 @@ def get_item_sizes(size):
         "items": result
     }
 
-    
 
-def get_inventory_with_size(name, size):
-    query = (
+def _normalize_text(value):
+    return re.sub(r"[^a-z0-9]+", " ", str(value or "").lower()).strip()
+
+
+def _normalize_size(value):
+    if value is None:
+        return ""
+    text = str(value).lower().replace("us", "").strip()
+    match = re.search(r"\d+(?:\.\d+)?", text)
+    if not match:
+        return text
+    number = match.group(0)
+    if "." in number:
+        number = number.rstrip("0").rstrip(".")
+    return number
+
+
+def _name_score(query, candidate):
+    query = _normalize_text(query)
+    candidate = _normalize_text(candidate)
+    if not query or not candidate:
+        return 0
+    if query in candidate:
+        return 100
+    if fuzz:
+        return int(fuzz.partial_ratio(query, candidate))
+    return int(SequenceMatcher(None, query, candidate).ratio() * 100)
+
+
+def _available_variations(variations):
+    return [
+        variation
+        for variation in variations
+        if is_variation_sellable(variation)
+    ]
+
+
+def _item_with_variations(item, variations):
+    data = Inventory.to_dict(item)
+    data["variations"] = [variation.to_dict() for variation in variations]
+    return data
+
+
+def _matched_inventory_candidates(name, threshold=70):
+    items = (
         Inventory.query
-        .filter(Inventory.name.ilike(f"%{name}%"))
-        .join(InventoryVariation)
-        
+        .options(selectinload(Inventory.variations))
+        .all()
     )
-    if size:
-        query = query.filter(
-            InventoryVariation.size == size,
-            InventoryVariation.status != "sold"
-        ).options(contains_eager(Inventory.variations))
+    matches = []
+    for item in items:
+        score = _name_score(name, item.name)
+        if score >= threshold:
+            reason = "exact" if _normalize_text(name) in _normalize_text(item.name) else "fuzzy"
+            matches.append((score, reason, item))
+    matches.sort(key=lambda row: (-row[0], row[2].id))
+    return matches
 
 
-    inventories = query.all()
+def search_inventory_matches(name=None, size=None, limit=10):
+    """
+    Search inventory for sales inquiries and include fallback suggestions.
+    Returns available exact size matches, same-item alternate sizes, and
+    same-size alternate items without changing public API payload shape.
+    """
+    normalized_size = _normalize_size(size)
+    matched_items = _matched_inventory_candidates(name) if name else []
+    exact_items = []
+    alternate_sizes = []
+    same_size_items = []
+    match_reason = None
 
+    for score, reason, item in matched_items:
+        available = _available_variations(item.variations)
+        if not available:
+            continue
+        if match_reason is None:
+            match_reason = reason
 
-    result = [Inventory.to_dict(item) for item in inventories]
+        if normalized_size:
+            exact_variations = [
+                variation
+                for variation in available
+                if _normalize_size(variation.size) == normalized_size
+            ]
+            if exact_variations:
+                exact_items.append(_item_with_variations(item, exact_variations))
+            elif not exact_items:
+                alternate_sizes.append(_item_with_variations(item, available))
+        else:
+            exact_items.append(_item_with_variations(item, available))
+
+        if len(exact_items) >= limit:
+            break
+
+    if normalized_size and not exact_items:
+        all_items = (
+            Inventory.query
+            .join(InventoryVariation)
+            .filter(
+                InventoryVariation.stock > 0,
+                ~func.lower(func.coalesce(InventoryVariation.status, "")).in_(
+                    ("sold", "unavailable", "inactive")
+                ),
+            )
+            .options(contains_eager(Inventory.variations))
+            .all()
+        )
+        for item in all_items:
+            variations = [
+                variation
+                for variation in item.variations
+                if is_variation_sellable(variation)
+                and _normalize_size(variation.size) == normalized_size
+            ]
+            if variations:
+                same_size_items.append(_item_with_variations(item, variations))
+            if len(same_size_items) >= limit:
+                break
 
     return {
-        "found": len(result)>0,
-        "count": len(result),
-        "items": result
+        "found": len(exact_items) > 0,
+        "count": len(exact_items),
+        "items": exact_items[:limit],
+        "match_reason": match_reason,
+        "alternate_sizes": alternate_sizes[:limit],
+        "same_size_items": same_size_items[:limit],
     }
+
+def get_inventory_with_size(name, size):
+    return search_inventory_matches(name=name, size=size)
 
 def get_all_available_inventory(page=1):
     per_page=10
@@ -188,8 +311,14 @@ def get_all_available_inventory(page=1):
     query = (
         Inventory.query
         .join(InventoryVariation)
-        .filter(InventoryVariation.status != "sold")
+        .filter(
+            InventoryVariation.stock > 0,
+            ~func.lower(func.coalesce(InventoryVariation.status, "")).in_(
+                ("sold", "unavailable", "inactive")
+            ),
+        )
         .options(contains_eager(Inventory.variations))
+        .order_by(Inventory.id, InventoryVariation.id)
         .limit(per_page)
         .offset(offset)
         .all()
@@ -201,7 +330,12 @@ def get_all_available_inventory(page=1):
     total = (
         db.session.query(func.count(Inventory.id))
         .join(InventoryVariation)
-        .filter(InventoryVariation.status != "sold")
+        .filter(
+            InventoryVariation.stock > 0,
+            ~func.lower(func.coalesce(InventoryVariation.status, "")).in_(
+                ("sold", "unavailable", "inactive")
+            ),
+        )
         .scalar()
     )
 
