@@ -7,9 +7,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-PROJECT = "scarceph"
-QUEUE = "email-queue"
-LOCATION = "asia-southeast1"
+PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT", "scarceph")
+QUEUE = os.environ.get("EMAIL_TASK_QUEUE", "email-queue")
+LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "asia-southeast1")
 
 
 def enqueue_email(payload: dict, task_id=None):

@@ -31,9 +31,6 @@ class Config:
             "DB_URI",
             "GOOGLE_CLOUD_PROJECT",
             "GOOGLE_CLOUD_LOCATION",
-            "MESSENGER_TASK_QUEUE",
-            "MESSENGER_WORKER_URL",
-            "TASKS_SERVICE_ACCOUNT_EMAIL",
             "EMAIL_WORKER_URL",
             "JWT_SECRET_KEY",
         )

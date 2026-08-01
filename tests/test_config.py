@@ -13,7 +13,8 @@ class ConfigValidationTestCase(unittest.TestCase):
 
         message = str(raised.exception)
         self.assertIn("APP_SECRET", message)
-        self.assertIn("MESSENGER_WORKER_URL", message)
+        self.assertIn("EMAIL_WORKER_URL", message)
+        self.assertNotIn("MESSENGER_WORKER_URL", message)
 
     def test_complete_environment_passes(self):
         names = (
@@ -25,9 +26,6 @@ class ConfigValidationTestCase(unittest.TestCase):
             "DB_URI",
             "GOOGLE_CLOUD_PROJECT",
             "GOOGLE_CLOUD_LOCATION",
-            "MESSENGER_TASK_QUEUE",
-            "MESSENGER_WORKER_URL",
-            "TASKS_SERVICE_ACCOUNT_EMAIL",
             "EMAIL_WORKER_URL",
             "JWT_SECRET_KEY",
         )
