@@ -123,28 +123,11 @@ def get_gpt_analysis(user_message, sender_id=None):
     history_block = "\n".join([f"- {msg}" for msg in history]) if history else "- none"
 
     user_prompt = f"""
-        Recent user messages (oldest to latest, max 2):
+        Recent messages:
         {history_block}
 
         Current user message:
         "{user_message}"
-
-        Return JSON:
-        {{
-            "intent": "",
-            "item": "",
-            "size": "",
-            "confidence": "high|medium|low",
-            "reply": "",
-            "needs_handover": false
-        }}
-
-        Classify only sales essentials: availability, size, price, order status,
-        payment steps, shipping, available-pairs browsing, and human handover.
-        Extract item and US size if present. Do not invent prices, stock,
-        shipping exceptions, payment accounts, refund policy, authenticity
-        claims, meetup rules, cancellation terms, or reservations. Use
-        needs_handover=true for unsupported policy questions.
     """
 
     raw = call_gpt(SYSTEM_PROMPT_ANALYSIS, user_prompt)

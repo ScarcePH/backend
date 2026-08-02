@@ -1,6 +1,7 @@
 import re
 
 from bot.core.constants import NOTIFY_USER, QUICK_REPLIES, SIZE_QUICK_REPLIES
+from bot.services.local_classifier import classify_local_message
 from bot.services.messenger import reply, send_carousel
 from bot.services.nlp import get_gpt_analysis, push_user_message
 from bot.state.manager import set_handover, set_state
@@ -12,17 +13,6 @@ from db.repository.inventory import get_item_sizes, search_inventory_matches
 SALES_INTENTS = {"check_product", "ask_price", "ask_availability"}
 CONFUSION_TTL_SECONDS = 900
 CONFUSION_LIMIT = 2
-UNSUPPORTED_POLICY_TERMS = {
-    "refund",
-    "return",
-    "exchange",
-    "authentic",
-    "legit",
-    "meetup",
-    "cancel",
-    "reservation",
-    "reserve",
-}
 
 
 def _confusion_key(sender_id):
@@ -49,11 +39,6 @@ def reset_confusion(sender_id):
         return
 
 
-def _contains_unsupported_policy(message):
-    words = set(re.findall(r"[a-z]+", str(message or "").lower()))
-    return bool(words & UNSUPPORTED_POLICY_TERMS)
-
-
 def _message_without_size(message, size):
     text = str(message or "")
     if size:
@@ -68,6 +53,27 @@ def _message_without_size(message, size):
 
 
 def build_intent_result(message, sender_id=None):
+    local = classify_local_message(message)
+    if local["intent"] == "handover" or local["intent"] == "unsupported_policy":
+        return {
+            "intent": "handover",
+            "item": "",
+            "size": "",
+            "confidence": "high",
+            "reply": "",
+            "needs_handover": True,
+        }
+    if local["intent"] == "size_only":
+        push_user_message(sender_id, message)
+        return {
+            "intent": "ask_availability",
+            "item": "",
+            "size": local["size"],
+            "confidence": "high",
+            "reply": "",
+            "needs_handover": False,
+        }
+
     extracted_size = extract_size(message)
     analysis = get_gpt_analysis(message, sender_id)
     push_user_message(sender_id, message)
@@ -80,7 +86,7 @@ def build_intent_result(message, sender_id=None):
     if item and item.lower() in {"size", "sz", "avail", "available", "naa", "meron"}:
         item = ""
 
-    needs_handover = intent == "handover" or _contains_unsupported_policy(message)
+    needs_handover = intent == "handover"
     confidence = "high" if item and (size or intent in SALES_INTENTS) else "low"
 
     return {

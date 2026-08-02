@@ -10,6 +10,7 @@ os.environ.setdefault("OPENAI_API_KEY", "test-key")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 
 from bot.services import inquiry, nlp
+from bot.services.local_classifier import classify_local_message
 
 checkout_stub = types.ModuleType("db.repository.checkout")
 checkout_stub.start_checkout = lambda *args, **kwargs: {"checkout_session_id": "test-session"}
@@ -91,20 +92,32 @@ class BotInquiryTestCase(unittest.TestCase):
         self.reply.assert_called_with("sender-1", "We have Venom in US 10.")
 
     def test_size_only_inquiry_lists_available_pairs(self):
-        with patch.object(inquiry, "get_gpt_analysis", return_value={
-            "intent": "ask_availability",
-            "item": "",
-            "size": "",
-            "confidence": "low",
-            "reply": "",
-        }), patch.object(inquiry, "get_item_sizes", return_value={
+        with patch.object(inquiry, "get_gpt_analysis") as gpt, patch.object(inquiry, "get_item_sizes", return_value={
             "found": True,
             "items": [inventory_item(size="9")],
         }):
             inquiry.handle_inquiry("sender-1", "size 9?")
 
+        gpt.assert_not_called()
+        self.push.assert_called_once_with("sender-1", "size 9?")
         self.reply.assert_called_with("sender-1", "Here are available pairs in US 9.")
         self.carousel.assert_called_once()
+
+    def test_known_item_size_only_inquiry_uses_awaited_item_without_gpt(self):
+        with patch.object(inquiry, "get_gpt_analysis") as gpt, patch.object(
+            inquiry,
+            "search_inventory_matches",
+            return_value={"found": True, "items": [inventory_item()]},
+        ) as search:
+            inquiry.handle_inquiry(
+                "sender-1",
+                "10",
+                {"state": "awaiting_size", "item": "Venom"},
+                known_item="Venom",
+            )
+
+        gpt.assert_not_called()
+        search.assert_called_once_with(name="Venom", size="10")
 
     def test_item_only_inquiry_asks_for_size(self):
         with patch.object(inquiry, "get_gpt_analysis", return_value={
@@ -144,17 +157,59 @@ class BotInquiryTestCase(unittest.TestCase):
         self.carousel.assert_called_once()
 
     def test_unsupported_policy_routes_to_handover(self):
-        with patch.object(inquiry, "get_gpt_analysis", return_value={
-            "intent": "smalltalk",
-            "item": "",
-            "size": "",
-            "confidence": "low",
-            "reply": "",
-        }), patch.object(inquiry, "set_handover") as handover:
+        with patch.object(inquiry, "get_gpt_analysis") as gpt, patch.object(
+            inquiry, "set_handover"
+        ) as handover:
             inquiry.handle_inquiry("sender-1", "do you allow refund?")
 
+        gpt.assert_not_called()
+        self.push.assert_not_called()
         handover.assert_called_once_with("sender-1")
         self.assertIn("real person", self.reply.call_args.args[1])
+
+    def test_ordinary_product_inquiry_calls_gpt_once(self):
+        with patch.object(inquiry, "get_gpt_analysis", return_value={
+            "intent": "ask_availability",
+            "item": "Venom",
+            "size": "10",
+            "confidence": "high",
+            "reply": "",
+        }) as gpt, patch.object(inquiry, "search_inventory_matches", return_value={
+            "found": True,
+            "items": [inventory_item()],
+        }):
+            inquiry.handle_inquiry("sender-1", "hi, venom size 10")
+
+        gpt.assert_called_once_with("hi, venom size 10", "sender-1")
+
+
+class LocalClassifierTestCase(unittest.TestCase):
+    def test_greeting_variants_match_only_the_whole_message(self):
+        for message in ("HI", "...hello!!!", "👋 Hey 😊", " good morning ☀️ "):
+            with self.subTest(message=message):
+                self.assertEqual("greet", classify_local_message(message)["intent"])
+
+        self.assertEqual(
+            "gpt", classify_local_message("hi, venom size 10")["intent"]
+        )
+
+    def test_handover_synonyms_are_case_insensitive_whole_words(self):
+        for synonym in ("agent", "ADMIN", "Staff!", "HuMaN", "real person", "LIVE PERSON 👋"):
+            with self.subTest(synonym=synonym):
+                self.assertEqual(
+                    "handover",
+                    classify_local_message(f"Please get me an {synonym}")["intent"],
+                )
+
+        for message in ("humanity", "stafford"):
+            with self.subTest(message=message):
+                self.assertEqual("gpt", classify_local_message(message)["intent"])
+
+    def test_handover_wins_over_other_local_intents(self):
+        self.assertEqual(
+            "handover",
+            classify_local_message("hello, can an agent help with a refund?")["intent"],
+        )
 
 
 class BotAutoReplyGuardTestCase(unittest.TestCase):

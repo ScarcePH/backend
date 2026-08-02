@@ -12,9 +12,10 @@ from bot.handlers import (
     
 )
 from bot.services.nlp import get_auto_reply
+from bot.services.local_classifier import classify_local_message
 from bot.services.messenger import reply
 from bot.state.manager import clear_handover, get_state, reset_state, set_handover
-from bot.core.constants import ERROR_MSG
+from bot.core.constants import AUTO_REPLIES, ERROR_MSG, QUICK_REPLIES, WELCOME_MSG
 from bot.observability import increment
 
 STATE_HANDLERS = {
@@ -81,14 +82,29 @@ def handle_message(sender_id, chat):
         clear_handover(sender_id)
         reply(sender_id, "Let's start over. What pair and US size are you looking for?")
         return "ok", 200
-    if action == "TALK_TO_HUMAN" or "talk to human" in normalized:
+    local = classify_local_message(action)
+    if action == "TALK_TO_HUMAN" or local["intent"] == "handover":
+        active_checkout = is_active_checkout_state(current)
         set_handover(
             sender_id,
             reason="customer_requested",
             state=state,
-            summary="Customer requested a person during checkout.",
+            summary=(
+                "Customer requested a person during checkout."
+                if active_checkout
+                else "Customer requested a person."
+            ),
         )
-        reply(sender_id, "Your checkout is saved. A member of our team will reply here shortly.", None)
+        message = (
+            "Your checkout is saved. A member of our team will reply here shortly."
+            if active_checkout
+            else AUTO_REPLIES["💬 talk to human"]
+        )
+        reply(sender_id, message, None)
+        return "ok", 200
+
+    if local["intent"] == "greet" and not is_active_checkout_state(current):
+        reply(sender_id, WELCOME_MSG, QUICK_REPLIES)
         return "ok", 200
 
     chat_lower = action.lower() if current != "handle_verify_payment" else action

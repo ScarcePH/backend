@@ -24,7 +24,7 @@ from bot.utils.redis_client import redis_client
 
 
 bot_bp = Blueprint("bot", __name__)
-EVENT_DEDUP_TTL_SECONDS = 24 * 60 * 60
+EVENT_DEDUP_TTL_SECONDS = 6 * 60 * 60
 SENDER_LOCK_TIMEOUT_SECONDS = 300
 
 

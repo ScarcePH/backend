@@ -99,6 +99,40 @@ class GuidedRouterTestCase(unittest.TestCase):
         handover.assert_called_once()
         self.assertEqual("checkout-1", handover.call_args.kwargs["state"]["checkout_session_id"])
 
+    def test_typed_handover_synonym_routes_locally_outside_checkout(self):
+        with patch.object(router, "get_state", return_value={"state": "idle"}), \
+             patch.object(router, "set_handover") as handover, \
+             patch.object(router, "get_auto_reply") as auto_reply, \
+             patch.object(router, "reply") as reply:
+            router.handle_message("sender-1", "Can I speak to an ADMIN? 👋")
+
+        handover.assert_called_once()
+        auto_reply.assert_not_called()
+        self.assertIn("real person", reply.call_args.args[1])
+
+    def test_local_greeting_uses_welcome_without_nlp(self):
+        with patch.object(router, "get_state", return_value={"state": "idle"}), \
+             patch.object(router, "get_auto_reply") as auto_reply, \
+             patch.object(router, "reply") as reply:
+            router.handle_message("sender-1", "👋 Hello!!!")
+
+        auto_reply.assert_not_called()
+        self.assertEqual(router.WELCOME_MSG, reply.call_args.args[1])
+        self.assertEqual(router.QUICK_REPLIES, reply.call_args.args[2])
+
+    def test_greeting_does_not_interrupt_active_checkout_validation(self):
+        handler = unittest.mock.Mock()
+        state = manager.new_checkout_state(
+            "handle_payment_method", expected_input="payment_method"
+        )
+        with patch.object(router, "get_state", return_value=state), \
+             patch.dict(router.STATE_HANDLERS, {"handle_payment_method": handler}), \
+             patch.object(router, "get_auto_reply") as auto_reply:
+            router.handle_message("sender-1", "hello")
+
+        auto_reply.assert_not_called()
+        handler.assert_called_once_with("sender-1", "hello", state)
+
 
 class InputValidationTestCase(unittest.TestCase):
     def test_order_postback_reloads_authoritative_inventory_values(self):

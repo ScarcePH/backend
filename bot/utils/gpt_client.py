@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 def call_gpt(system_prompt,message):
     try:
         response = client.chat.completions.create(
-            model="gpt-5.1",
+            model="gpt-5.6-luna",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": message}
             ],
-            reasoning_effort="medium",
+            reasoning_effort="none",
         )
         content = response.choices[0].message.content.strip()
         if not content:
