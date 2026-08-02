@@ -3,7 +3,7 @@ name: Deploy to Cloud Run (Docker)
 on:
   push:
     branches:
-      - messenger-bot-reliability
+      - main
 
 env:
   SERVICE_NAME: backend
