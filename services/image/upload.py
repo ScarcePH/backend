@@ -13,7 +13,12 @@ s3 = boto3.client(
     endpoint_url=endpoint_url,
     aws_access_key_id=access_key,
     aws_secret_access_key=secret_key,
-    config=Config(signature_version="s3v4"),
+    config=Config(
+        signature_version="s3v4",
+        connect_timeout=5,
+        read_timeout=30,
+        retries={"max_attempts": 2, "mode": "standard"},
+    ),
     region_name="auto",
 )
 
@@ -32,4 +37,3 @@ def upload(file, filename, content_type, subfolder=None):
     )
 
     return f"{img_base_url}/{key}"
-

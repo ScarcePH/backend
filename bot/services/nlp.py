@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 from bot.utils.gpt_client import call_gpt   
@@ -11,6 +12,8 @@ from bot.services.messenger import reply as messender_reply, send_carousel
 from db.repository.order import get_order
 from db.repository.inventory import get_all_available_inventory
 
+logger = logging.getLogger(__name__)
+
 
 SYSTEM_PROMPT_ANALYSIS = os.environ.get("SYSTEM_PROMPT_ANALYSIS")
 HISTORY_TTL_SECONDS = 1800
@@ -20,7 +23,9 @@ DEFAULT_RESPONSE = {
     "intent": "smalltalk",
     "item": "",
     "size": "",
-    "reply": "Got it."
+    "confidence": "low",
+    "reply": "Got it.",
+    "needs_handover": False,
 }
 
 
@@ -88,6 +93,8 @@ def sanitize(parsed):
     item = parsed.get("item", "") or ""
     size = parsed.get("size", "") or ""
     reply = parsed.get("reply", "") or ""
+    confidence = parsed.get("confidence", "") or "low"
+    needs_handover = bool(parsed.get("needs_handover", False))
 
     # Hard safety: unknown intent → smalltalk
     VALID_INTENTS = {
@@ -106,7 +113,9 @@ def sanitize(parsed):
         "intent": intent,
         "item": item.strip(),
         "size": size.strip(),
-        "reply": reply.strip() if reply else "Okay."
+        "confidence": confidence if confidence in {"high", "medium", "low"} else "low",
+        "reply": reply.strip() if reply else "Okay.",
+        "needs_handover": needs_handover,
     }
 
 def get_gpt_analysis(user_message, sender_id=None):
@@ -114,23 +123,15 @@ def get_gpt_analysis(user_message, sender_id=None):
     history_block = "\n".join([f"- {msg}" for msg in history]) if history else "- none"
 
     user_prompt = f"""
-        Recent user messages (oldest to latest, max 2):
+        Recent messages:
         {history_block}
 
         Current user message:
         "{user_message}"
-
-        Return JSON:
-        {{
-            "intent": "",
-            "item": "",
-            "size": "",
-            "reply": ""
-        }}
     """
 
     raw = call_gpt(SYSTEM_PROMPT_ANALYSIS, user_prompt)
-    print(f"[GPT ANALYSIS RAW] {raw}")
+    logger.debug("gpt_analysis_completed has_output=%s", bool(raw))
 
     parsed = extract_json(raw)
     clean = sanitize(parsed)
@@ -138,13 +139,36 @@ def get_gpt_analysis(user_message, sender_id=None):
     return clean
 
 
+def _auto_reply_allowed(keyword, state):
+    current = (state or {}).get("state", "idle")
+    normalized = keyword.lower()
+
+    if "talk to human" in normalized:
+        return True
+    if "notify me" in normalized:
+        return bool((state or {}).get("item") and (state or {}).get("size"))
+    if normalized in {"use this address", "change address"}:
+        return current == "repeat_customer_confirm"
+    if "my order" in normalized:
+        return current == "idle"
+    if normalized in {"📦 how to order", "🚚 shipping info"}:
+        return current == "idle"
+
+    return current == "idle"
+
+
 def get_auto_reply(message, sender_id,state):
     for keyword, reply in AUTO_REPLIES.items():
         if keyword in message:
+            if not _auto_reply_allowed(keyword, state):
+                return None
             if "talk to human" in keyword:
                 set_handover(sender_id)
             if "notify me" in keyword:                
-                create_leads(sender_id,  state["item"], state["size"])
+                item = (state or {}).get("item")
+                size = (state or {}).get("size")
+                if item and size:
+                    create_leads(sender_id, item, size)
             if "use this address" in keyword:
                 confirm_order(sender_id)
                 return None

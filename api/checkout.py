@@ -1,4 +1,5 @@
 from flask import request, jsonify, Blueprint, url_for, make_response
+from markupsafe import escape
 from db.models import CheckoutSession, Inventory, Customers, InventoryVariation, Cart
 from db.models.users import User
 from db.database import db
@@ -29,7 +30,9 @@ checkout_bp = Blueprint("checkout", __name__)
 
 
 def _get_admin_serializer():
-    secret = os.environ.get("JWT_SECRET_KEY") or "dev-secret"
+    secret = os.environ.get("ADMIN_APPROVAL_SECRET") or os.environ.get("JWT_SECRET_KEY")
+    if not secret:
+        raise RuntimeError("ADMIN_APPROVAL_SECRET or JWT_SECRET_KEY must be configured")
     return URLSafeTimedSerializer(secret, salt="admin-order-approval")
 
 
@@ -57,6 +60,8 @@ def _build_admin_action_urls(session_id: str):
 
 
 def _html_response(title: str, message: str, status_code: int = 200):
+    title = escape(title)
+    message = escape(message)
     html = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -99,6 +104,17 @@ def _html_response(title: str, message: str, status_code: int = 200):
 </html>"""
     response = make_response(html, status_code)
     response.headers["Content-Type"] = "text/html; charset=utf-8"
+    return response
+
+
+def _admin_confirmation_response(title, message, token, button_label):
+    response = _html_response(title, message)
+    form = (
+        f'<form method="post" style="max-width:520px;margin:16px auto">'
+        f'<input type="hidden" name="token" value="{escape(token)}">'
+        f'<button type="submit">{escape(button_label)}</button></form>'
+    )
+    response.set_data(response.get_data(as_text=True).replace("</body>", form + "</body>"))
     return response
 
 
@@ -355,8 +371,6 @@ def get_checkout_session_by_id():
     ctx = get_current_customer_context()
     customer = get_or_create_customer(user_id=ctx["user_id"], guest_id=ctx["guest_id"])
 
-
-    print('customer',customer)
     if not customer:
         return jsonify({"message": "Customer not found"}), 404
 
@@ -409,7 +423,10 @@ def approve_checkout_session():
     if not session_id:
         return jsonify({"message": "checkout_session_id is required"}), 422
 
-    result, status_code = approve_checkout_session_repo(session_id)
+    result, status_code = approve_checkout_session_repo(
+        session_id,
+        received_amount=data.get("received_amount"),
+    )
     if status_code != 200:
         return jsonify(result), status_code
 
@@ -447,9 +464,9 @@ def reject_checkout_session():
     })
 
 
-@checkout_bp.route("/checkout/admin-approve", methods=["GET"])
+@checkout_bp.route("/checkout/admin-approve", methods=["GET", "POST"])
 def admin_approve_via_email():
-    token = request.args.get("token")
+    token = request.values.get("token")
     if not token:
         return _html_response("Missing token", "The approval link is missing a token.", 422)
 
@@ -468,6 +485,14 @@ def admin_approve_via_email():
     if not session_id:
         return _html_response("Invalid link", "This approval link is invalid.", 400)
 
+    if request.method == "GET":
+        return _admin_confirmation_response(
+            "Confirm order approval",
+            f"Approve checkout session {session_id}?",
+            token,
+            "Approve order",
+        )
+
     result, status_code = approve_checkout_session_repo(session_id)
     if status_code != 200:
         message = result.get("message") if isinstance(result, dict) else "Unable to approve this order."
@@ -480,9 +505,9 @@ def admin_approve_via_email():
     )
 
 
-@checkout_bp.route("/checkout/admin-decline", methods=["GET"])
+@checkout_bp.route("/checkout/admin-decline", methods=["GET", "POST"])
 def admin_decline_via_email():
-    token = request.args.get("token")
+    token = request.values.get("token")
     if not token:
         return _html_response("Missing token", "The decline link is missing a token.", 422)
 
@@ -500,6 +525,14 @@ def admin_decline_via_email():
     session_id = payload.get("session_id")
     if not session_id:
         return _html_response("Invalid link", "This decline link is invalid.", 400)
+
+    if request.method == "GET":
+        return _admin_confirmation_response(
+            "Confirm order decline",
+            f"Decline checkout session {session_id}?",
+            token,
+            "Decline order",
+        )
 
     result, status_code = reject_checkout_session_repo(session_id, reject_reason="Declined by admin")
     if status_code != 200:

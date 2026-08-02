@@ -1,13 +1,20 @@
-from bot.services.send_text import send_text_message, send_template_message
+from bot.services.send_text import (
+    MessengerTransientError,
+    send_template_message,
+    send_text_message,
+)
 from bot.core.constants import BOT_TAG, QUICK_REPLIES, TRACK
 import json
 
 def reply(sender_id, message, quick_replies=QUICK_REPLIES):
-    send_text_message(sender_id, f"{message}\n{BOT_TAG}", quick_replies)
+    result = send_text_message(sender_id, f"{message}\n{BOT_TAG}", quick_replies)
+    if not result.ok and result.retryable:
+        raise MessengerTransientError(result.error_class or "messenger_send_failed")
+    return result
 
 
 
-def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[]):
+def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=None):
     items = []
     if(is_my_order):
         for order in products or []:
@@ -48,9 +55,11 @@ def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[])
             if buttons:
                 carousel["buttons"] = buttons
             items.append(carousel)
+            if len(items) == 10:
+                break
     else:
-        for inventory in products:
-            for variation in inventory['variations']:
+        for inventory in products or []:
+            for variation in inventory.get('variations', []):
                 carousel={
                     "title":inventory['name'],
                     "subtitle": f"{variation['status']} | {variation['condition']} | Size: {variation['size']} | ₱{variation['price']}",
@@ -67,19 +76,19 @@ def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[])
                             "payload": json.dumps({
                                 "action": "ORDER",
                                 "inventory_id": inventory['id'],
-                                "variation_id": variation['id'],
-                                "item": inventory['name'],
-                                "size": variation['size'],
-                                "price": str(variation['price']),
-                                "url": variation['url'],
-                                "status": variation['status']
+                                "variation_id": variation['id']
                             })
                         }
                     ]
                 }
                 items.append(carousel)
+                if len(items) == 10:
+                    break
+            if len(items) == 10:
+                break
 
-    print(f"[items]:", items)
+    if not items:
+        return None
     message = {
         "attachment": {
             "type": "template",
@@ -91,9 +100,25 @@ def send_carousel(sender_id, products=None, is_my_order=False, quick_replies=[])
         }
     }
     if quick_replies and len(quick_replies) > 0:
-        message["quick_replies"] = quick_replies
+        message["quick_replies"] = [
+            {
+                "content_type": "text",
+                "title": str(item.get("title", ""))[:20],
+                "payload": str(item.get("payload", item.get("title", "")))[:1000],
+            }
+            if isinstance(item, dict)
+            else {
+                "content_type": "text",
+                "title": str(item)[:20],
+                "payload": str(item)[:1000],
+            }
+            for item in list(quick_replies)[:13]
+        ]
 
-    send_template_message(sender_id, message)
+    result = send_template_message(sender_id, message)
+    if not result.ok and result.retryable:
+        raise MessengerTransientError(result.error_class or "messenger_send_failed")
+    return result
 
 
 def coursel_image(img_url):

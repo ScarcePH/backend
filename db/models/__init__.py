@@ -21,6 +21,5 @@ __all__ = [
     "Cart",
     "CartItem",
     "CheckoutSession",
-    "OrderItem"
-
+    "OrderItem",
 ]

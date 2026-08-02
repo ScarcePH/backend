@@ -1,5 +1,8 @@
 from flask import Flask, send_from_directory
 from dotenv import load_dotenv
+
+load_dotenv()
+
 from bot.webhook_handler import bot_bp
 from api import customers_bp, orders_bp, inventory_bp, auth_bp, dashboard_bp, cart_bp, checkout_bp
 from db.database import db, migrate
@@ -10,15 +13,9 @@ from flask_cors import CORS
 from db.models.token_blocklist import TokenBlocklist
 from api.helpers.rate_limit import register_api_rate_limit
 
-
-
-
-load_dotenv()
-
-
-
-
 app = Flask(__name__)
+
+Config.validate_required_environment()
 
 allowed_origins = [
     "http://localhost:5173",

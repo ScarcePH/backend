@@ -1,9 +1,10 @@
 import re
 
 from bot.services.messenger import reply
-from bot.state.manager import set_state
+from bot.state.manager import transition_state
 from db.repository.customer import get_customer, save_customer, update_customer
-from bot.core.constants import USE_OR_CHANGE_ADDRESS
+from bot.core.constants import GLOBAL_CHECKOUT_ACTIONS, USE_OR_CHANGE_ADDRESS
+from bot.handlers.guided import reject_input
 
 
 def _is_valid_email(email: str) -> bool:
@@ -15,8 +16,13 @@ def handle(sender_id, chat, state):
     email = (chat or "").strip().lower()
 
     if not _is_valid_email(email):
-        reply(sender_id, "Please send a valid email address (example: juan@gmail.com).", None)
-        return
+        return reject_input(
+            sender_id,
+            state,
+            "Please send a valid email address, for example juan@gmail.com.",
+            GLOBAL_CHECKOUT_ACTIONS,
+            reason="invalid_email",
+        )
 
     customer = get_customer(sender_id)
     if not customer:
@@ -41,20 +47,14 @@ def handle(sender_id, chat, state):
             f"Phone: {phone}\n\n"
             "Would you like to use this address for your order?"
         )
-        set_state(sender_id, {
-            **state,
-            "state": "repeat_customer_confirm",
-            "customer_name": name,
-            "customer_address": address,
-            "customer_phone": phone,
-            "email": email,
-        })
+        transition_state(
+            sender_id, state, "repeat_customer_confirm", expected_input="saved_address_choice",
+            customer_name=name, customer_address=address, customer_phone=phone, email=email,
+        )
         reply(sender_id, msg, USE_OR_CHANGE_ADDRESS)
         return
 
-    set_state(sender_id, {
-        **state,
-        "state": "awaiting_customer_name",
-        "email": email,
-    })
-    reply(sender_id, "Thanks! Now please provide your full name for shipping.", None)
+    transition_state(
+        sender_id, state, "awaiting_customer_name", expected_input="customer_name", email=email,
+    )
+    reply(sender_id, "Thanks! Now please provide your full name for shipping.", GLOBAL_CHECKOUT_ACTIONS)

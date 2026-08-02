@@ -1,4 +1,6 @@
 # inventory.py
+import logging
+
 import pandas as pd
 import requests
 import time
@@ -6,6 +8,8 @@ from io import StringIO
 from rapidfuzz import fuzz, process
 import re
 from db.repository.inventory import get_all_inventory
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -27,14 +31,13 @@ def search_item(item_name, size=None):
         scorer=fuzz.token_set_ratio
     )
 
-    print("[MATCH]:", match)
+    logger.debug("inventory_match found=%s", bool(match))
 
     if not match or match[1] < 45:
         return {"found": False, "reason": "low_score"}
 
     matched_name, score, idx = match
     row = items[idx]
-    print("ROW:", row)
 
     if size and str(row["size"]) != str(size):
         return {"found": False, "reason": "size_mismatch", "name": row["name"]}
@@ -64,4 +67,3 @@ def get_item_sizes(size,item):
         f"We don't have '{item}' in size {size}us. "
         f"However, these are available in size {size}us: {formatted_list}."
     )
-

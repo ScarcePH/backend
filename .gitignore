@@ -5,6 +5,7 @@ __pycache__/
 
 # Environment variables
 .env
+gha-creds-*.json
 
 # VS Code settings
 .vscode/

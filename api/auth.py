@@ -73,7 +73,6 @@ def login():
         additional_claims={"role": user.role}
     )
     guest_id = request.cookies.get("guest_id")
-    print('guest_id',guest_id)
     merge_guest_cart_to_user(user.id, guest_id)
     response = jsonify({
         "access_token": access_token,
@@ -102,7 +101,6 @@ def register_user():
     )
 
     guest_id = request.cookies.get("guest_id")
-    print('guest_id',guest_id)
     merge_guest_cart_to_user(user.id, guest_id)
 
     response =  jsonify({
@@ -199,7 +197,10 @@ def forgot_password():
         try:
             enqueue_email(payload)
         except Exception as exc:
-            print("Failed to enqueue password reset email:", exc)
+            current_app.logger.error(
+                "password_reset_email_enqueue_failed error_class=%s",
+                type(exc).__name__,
+            )
 
     return jsonify({
         "message": "If an account exists for that email, a reset link has been sent."
