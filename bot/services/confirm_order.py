@@ -34,7 +34,7 @@ def _notify_staff_once(session_id):
         items.append({
             "name": inventory.name if inventory else "Item",
             "size": f"{variation.size}us" if variation and variation.size else None,
-            "price": str(variation.price) if variation and variation.price is not None else None,
+            "price": str(line.get("price")) if line.get("price") is not None else None,
         })
     enqueue_email({
         "type": "admin_order_notification",

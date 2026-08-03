@@ -15,6 +15,7 @@ from db.repository.inventory import is_variation_sellable
 from bot.services.messenger import send_carousel, reply
 from task.email import enqueue_email
 from bot.observability import increment
+from db.repository.promotion import active_promotion_prices
 
 
 logger = logging.getLogger(__name__)
@@ -44,7 +45,7 @@ def abandon_checkout_session(session_id, reason="Customer cancelled checkout"):
 
 
 def _authoritative_items(session, lock=False):
-    """Reload checkout lines from inventory and reject stale or unsellable data."""
+    """Revalidate inventory while preserving prices locked when checkout started."""
     raw_items = session.items_json or []
     variation_ids = sorted({item.get("variation_id") for item in raw_items if item.get("variation_id")})
     query = InventoryVariation.query.filter(InventoryVariation.id.in_(variation_ids))
@@ -68,13 +69,20 @@ def _authoritative_items(session, lock=False):
             or variation.stock < quantity
         ):
             raise InventoryUnavailableError("One or more checkout items are no longer available")
-        price = Decimal(str(variation.price))
+        try:
+            price = Decimal(str(item["price"]))
+        except (KeyError, InvalidOperation, TypeError, ValueError):
+            raise ValueError("Checkout contains an invalid locked price")
+        if not price.is_finite() or price <= 0:
+            raise ValueError("Checkout contains an invalid locked price")
         total += price * quantity
         refreshed.append({
             "inventory_id": variation.inventory_id,
             "variation_id": variation.id,
             "qty": quantity,
             "price": float(price),
+            "regular_price": item.get("regular_price"),
+            "promotion_id": item.get("promotion_id"),
         })
     if not refreshed:
         raise ValueError("Checkout has no items")
@@ -137,7 +145,8 @@ def start_checkout(items: list[dict], customer_id=None, user_id=None, guest_id=N
         return jsonify({"error": "Unable to resolve customer"}), 400
 
     validated_items = []
-    total = 0
+    total = Decimal("0")
+    promotion, promotion_prices = active_promotion_prices()
 
     for item in items:
         try:
@@ -150,14 +159,25 @@ def start_checkout(items: list[dict], customer_id=None, user_id=None, guest_id=N
         if quantity < 1 or not variation or not is_variation_sellable(variation) or variation.stock < quantity:
             return jsonify({"error": "Item unavailable"}), 400
 
-        price = variation.price
+        supplied_inventory_id = item.get("inventory_id")
+        if supplied_inventory_id is not None:
+            try:
+                supplied_inventory_id = int(supplied_inventory_id)
+            except (TypeError, ValueError):
+                return jsonify({"error": "Invalid checkout item"}), 400
+            if variation.inventory_id != supplied_inventory_id:
+                return jsonify({"error": "Variation does not belong to inventory item"}), 400
+
+        price = promotion_prices.get(variation.id, variation.price)
         total += price * quantity
 
         validated_items.append({
             "inventory_id": variation.inventory_id,
             "variation_id": variation.id,
             "qty": quantity,
-            "price": float(price)
+            "price": float(price),
+            "regular_price": float(variation.price),
+            "promotion_id": promotion.id if promotion and variation.id in promotion_prices else None,
         })
 
     existing_session = (
@@ -207,7 +227,7 @@ def _send_approval_notifications(session, order_data, paid):
             "name": inventory.name if inventory else "Item",
             "condition": variation.condition if variation else None,
             "size": f"{variation.size}us" if variation and variation.size else None,
-            "price": str(variation.price) if variation and variation.price is not None else None,
+            "price": str(item.get("price")) if item.get("price") is not None else None,
         })
     if session.customer and session.customer.email:
         enqueue_email({
@@ -240,7 +260,7 @@ def _send_rejection_notifications(session):
             "name": inventory.name if inventory else "Item",
             "category": variation.condition if variation else None,
             "size": f"{variation.size}us" if variation and variation.size else None,
-            "price": str(variation.price) if variation and variation.price is not None else None,
+            "price": str(item.get("price")) if item.get("price") is not None else None,
         })
     if session.customer and session.customer.sender_id:
         reply(session.customer.sender_id, f"Your checkout was rejected. Reason: {reason}", None)
