@@ -10,6 +10,7 @@ import requests
 from PIL import Image, UnidentifiedImageError
 from db.database import db
 from db.models import CheckoutSession
+from db.repository.checkout import _authoritative_items, InventoryUnavailableError
 from services.image.upload import upload
 from bot.observability import increment
 
@@ -132,6 +133,16 @@ def handle(sender_id, screenshot, state):
             db.session.commit()
         reset_state(sender_id)
         reply(sender_id, "This checkout is no longer active. Please select the pair again to restart.", None)
+        return
+
+    try:
+        locked_items, locked_total, _ = _authoritative_items(session)
+        session.items_json = locked_items
+        session.total_price = locked_total
+    except (InventoryUnavailableError, ValueError):
+        db.session.rollback()
+        reset_state(sender_id)
+        reply(sender_id, "That pair is no longer available. Please select another option.", None)
         return
 
     try:

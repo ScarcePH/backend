@@ -5,6 +5,7 @@ from api.auth import auth_bp
 from api.dashboard import dashboard_bp
 from api.cart import cart_bp
 from api.checkout import checkout_bp
+from api.promotions import promotions_bp
 
 __all__ = [
     "customers_bp",
@@ -13,5 +14,6 @@ __all__ = [
     "auth_bp",
     'dashboard_bp',
     'cart_bp',
-    "checkout_bp"
+    "checkout_bp",
+    "promotions_bp",
 ]

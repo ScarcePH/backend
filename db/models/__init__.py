@@ -9,6 +9,8 @@ from .cart import Cart
 from .cart_item import CartItem
 from .checkout_session import CheckoutSession
 from .order_item import OrderItem
+from .promotion import Promotion
+from .promotion_item import PromotionItem
 
 __all__ = [
     "Customers",
@@ -22,4 +24,6 @@ __all__ = [
     "CartItem",
     "CheckoutSession",
     "OrderItem",
+    "Promotion",
+    "PromotionItem",
 ]

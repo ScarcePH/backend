@@ -4,6 +4,7 @@ from db.models import Inventory, InventoryVariation, Cart, CartItem
 from uuid import uuid4
 from db.database import db
 from api.helpers.cart import get_or_create_cart, get_active_cart, get_current_customer_context
+from db.repository.promotion import active_promotion_prices
 
 
 cart_bp = Blueprint("cart", __name__)
@@ -36,10 +37,14 @@ def add_to_cart():
     if variation_id:
         variation = InventoryVariation.query.get_or_404(variation_id)
 
+        if variation.inventory_id != inventory.id:
+            return jsonify({"message": "Variation does not belong to this inventory item"}), 400
+
         if not is_variation_sellable(variation) or variation.stock < quantity:
             return jsonify({"message": "Item unavailable"}), 400
 
-        price = variation.price
+        _, promotion_prices = active_promotion_prices()
+        price = promotion_prices.get(variation.id, variation.price)
     else:
         if inventory.stock < quantity:
             return jsonify({"message": "Not enough stock"}), 400
@@ -155,12 +160,14 @@ def get_cart():
 
     cart_items = []
     total = 0
+    promotion, promotion_prices = active_promotion_prices()
 
     for item in cart.items:
         variation = InventoryVariation.query.get(item.variation_id)
         inventory = Inventory.query.get(item.inventory_id)
 
-        subtotal = float(item.price_at_add) * item.quantity
+        price = promotion_prices.get(variation.id, variation.price)
+        subtotal = float(price) * item.quantity
         total += subtotal
 
         cart_items.append({
@@ -169,7 +176,11 @@ def get_cart():
             "inventory_name": inventory.name,
             "condition": variation.condition,
             "size": variation.size,
-            "price": float(item.price_at_add),
+            "price": float(price),
+            "regular_price": float(variation.price),
+            "promo_price": float(price) if variation.id in promotion_prices else None,
+            "promotion_id": promotion.id if promotion and variation.id in promotion_prices else None,
+            "is_on_promotion": variation.id in promotion_prices,
             "quantity": item.quantity,
             "subtotal": subtotal,
             "image":inventory.image

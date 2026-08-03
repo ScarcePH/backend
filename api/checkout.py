@@ -9,6 +9,8 @@ from db.repository.checkout import (
     start_checkout as start_checkout_repo,
     approve_checkout_session as approve_checkout_session_repo,
     reject_checkout_session as reject_checkout_session_repo,
+    _authoritative_items,
+    InventoryUnavailableError,
 )
 from services.image.upload import upload
 from db.repository.customer_service import get_or_create_customer
@@ -208,6 +210,14 @@ def submit_checkout_proof():
             "status": session.status
         }), 400
 
+    try:
+        locked_items, locked_total, _ = _authoritative_items(session)
+        session.items_json = locked_items
+        session.total_price = locked_total
+    except (InventoryUnavailableError, ValueError) as exc:
+        db.session.rollback()
+        return jsonify({"message": str(exc)}), 409
+
     raw = file.stream.read()
     upload_buf = io.BytesIO(raw)
 
@@ -260,7 +270,7 @@ def ocr_status(job_id,checkout_session_id):
                 items.append({
                     "name": inventory.name if inventory else "Item",
                     "qty": item.get("qty", 1),
-                    "price": str(variation.price),
+                    "price": str(item.get("price")),
                     "image_url": inventory.image,
                     "condition":variation.condition,
                     "size": variation.size+"us"
@@ -292,7 +302,7 @@ def ocr_status(job_id,checkout_session_id):
                 admin_items.append({
                     "name": inventory.name if inventory else "Item",
                     "size": f"{variation.size}us" if variation and variation.size else None,
-                    "price": str(variation.price) if variation and variation.price is not None else None
+                    "price": str(item.get("price")) if item.get("price") is not None else None
                 })
 
             approve_url, decline_url = _build_admin_action_urls(str(session.id))

@@ -4,6 +4,7 @@ from db.database import db
 import re
 from difflib import SequenceMatcher
 from sqlalchemy.orm import contains_eager, selectinload
+from db.repository.promotion import active_promotion_prices
 
 try:
     from rapidfuzz import fuzz
@@ -90,8 +91,18 @@ def is_variation_sellable(variation):
 _variation_is_available = is_variation_sellable
 
 
-def _catalog_item_to_dict(item):
+def _catalog_item_to_dict(item, promotion=None, promotion_prices=None):
     data = Inventory.to_dict(item)
+    promotion_prices = promotion_prices or {}
+    for variation in data["variations"]:
+        regular_price = variation["price"]
+        promo_price = promotion_prices.get(variation["id"])
+        variation.update({
+            "effective_price": float(promo_price) if promo_price is not None else regular_price,
+            "promo_price": float(promo_price) if promo_price is not None else None,
+            "promotion_id": promotion.id if promo_price is not None and promotion else None,
+            "is_on_promotion": promo_price is not None,
+        })
     has_available_variation = any(
         _variation_is_available(variation)
         for variation in item.variations
@@ -102,6 +113,7 @@ def _catalog_item_to_dict(item):
 
 
 def get_public_catalog_inventory():
+    promotion, promotion_prices = active_promotion_prices()
     items = (
         Inventory.query
         .options(selectinload(Inventory.variations))
@@ -117,7 +129,10 @@ def get_public_catalog_inventory():
             item.id,
         )
     )
-    result = [_catalog_item_to_dict(item) for item in items]
+    result = [
+        _catalog_item_to_dict(item, promotion=promotion, promotion_prices=promotion_prices)
+        for item in items
+    ]
     return result
 
 
