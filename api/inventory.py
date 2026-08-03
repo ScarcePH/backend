@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, json
 from db.database import db
-from db.models.inventory import Inventory
+from db.models.inventory import INVENTORY_CATEGORIES, Inventory
 from db.repository.inventory import (
     get_all_inventory,
     save_inventory,
@@ -30,7 +30,15 @@ def create_inventory():
 
     name = request.form.get("name")
     description = request.form.get("description")
-    file = request.files["file"]
+    category = request.form.get("category")
+    file = request.files.get("file")
+
+    if category not in INVENTORY_CATEGORIES:
+        return jsonify({
+            "message": "category must be one of: janoski, basketball"
+        }), 400
+    if not name or file is None:
+        return jsonify({"message": "name and file are required"}), 400
 
     raw = file.stream.read()
 
@@ -65,7 +73,8 @@ def create_inventory():
     data = {
         "name": name,
         "description": description,
-        "image": inv_url
+        "image": inv_url,
+        "category": category,
     }
 
     res = save_inventory(data)
@@ -153,24 +162,33 @@ def get_catalog_items():
 @inventory_bp.route("/inventory/edit", methods=["POST"])
 @auth_required(allowed_roles=["super_admin"])
 def edit():
-    data = request.json
+    data = request.get_json(silent=True) or {}
     inventory_id = data.get("inventory_id")
     name = data.get("name")
     description = data.get("description")
+    category = data.get("category")
 
     if not inventory_id:
         return jsonify({"message": "inventory_id is required"}), 400
     
-    inventory = Inventory.query.get(inventory_id)
+    inventory = db.session.get(Inventory, inventory_id)
         
     if not inventory:
         return jsonify({"message": "pair not found"}), 404
+
+    if category is not None and category not in INVENTORY_CATEGORIES:
+        return jsonify({
+            "message": "category must be one of: janoski, basketball"
+        }), 400
 
     if name is not None:
         inventory.name = name
 
     if description is not None:
         inventory.description = description
+
+    if category is not None:
+        inventory.category = category
 
     db.session.commit()
 
@@ -179,6 +197,7 @@ def edit():
         "inventory": {
             "id": inventory.id,
             "name": inventory.name,
-            "description": inventory.description
+            "description": inventory.description,
+            "category": inventory.category
         }
     }), 200
