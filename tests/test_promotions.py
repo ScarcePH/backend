@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from types import SimpleNamespace
 import unittest
@@ -117,9 +117,15 @@ class PromotionTestCase(unittest.TestCase):
             self.assertIn("message", response.get_json())
 
     def test_overlapping_schedules_are_rejected_but_early_ended_do_not_block(self):
-        promotion = self.add_promotion()
+        today = datetime.now(ZoneInfo("Asia/Manila")).date()
+        start_date = today + timedelta(days=1)
+        end_date = start_date + timedelta(days=2)
+
+        promotion = self.add_promotion(
+            start=start_date, end=end_date, price="4000.00"
+        )
         with self.app.test_request_context(method="POST", json=self.payload(
-            start_date="2026-08-06", end_date="2026-08-08"
+            start_date=start_date.isoformat(), end_date=end_date.isoformat()
         )):
             response, status = promotions_api.create_promotion.__wrapped__()
         self.assertEqual(409, status)
@@ -128,7 +134,7 @@ class PromotionTestCase(unittest.TestCase):
         promotion.early_ended_at = datetime(2026, 8, 5, tzinfo=ZoneInfo("Asia/Manila"))
         db.session.commit()
         with self.app.test_request_context(method="POST", json=self.payload(
-            name="Replacement", start_date="2026-08-06", end_date="2026-08-08"
+            name="Replacement", start_date=start_date.isoformat(), end_date=end_date.isoformat()
         )):
             response, status = promotions_api.create_promotion.__wrapped__()
         self.assertEqual(201, status)
