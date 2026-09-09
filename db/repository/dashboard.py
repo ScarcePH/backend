@@ -33,7 +33,10 @@ def dashboard_summary():
             func.count(Payment.id)
         )
         .join(Order)
-        .filter(Payment.received_amount < Payment.total_amount)
+        .filter(
+            Order.status.in_(VALID_STATUS),
+            Payment.received_amount < Payment.total_amount
+        )
         .one()
     )
 
