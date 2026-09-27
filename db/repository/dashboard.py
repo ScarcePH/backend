@@ -65,7 +65,15 @@ def dashboard_summary():
 
     revenue_this_month = (
         db.session.query(func.coalesce(func.sum(Payment.received_amount), Decimal("0.00")))
-        .filter(Payment.created_at >= start_month)
+        .filter(
+            Payment.created_at >= start_month,
+        )
+        .filter(
+            Payment.order_id.in_(
+                db.session.query(Order.id)
+                .filter(Order.status.in_(["completed"]))
+            )
+        )
         .scalar()
     )
 
@@ -74,6 +82,12 @@ def dashboard_summary():
         .filter(
             Payment.created_at >= start_last_month,
             Payment.created_at < start_month
+        )
+        .filter(
+            Payment.order_id.in_(
+                db.session.query(Order.id)
+                .filter(Order.status.in_(["completed"]))
+            )
         )
         .scalar()
     )
@@ -88,7 +102,7 @@ def dashboard_summary():
         .join(Order, OrderItem.order_id == Order.id)
         .join(InventoryVariation, OrderItem.variation_id == InventoryVariation.id)
         .filter(
-            Order.status.in_(VALID_STATUS),
+            Order.status.in_(["completed"]),
             Order.created_at >= start_month
         )
         .scalar()
@@ -102,7 +116,7 @@ def dashboard_summary():
         .join(Order, OrderItem.order_id == Order.id)
         .join(InventoryVariation, OrderItem.variation_id == InventoryVariation.id)
         .filter(
-            Order.status.in_(VALID_STATUS),
+            Order.status.in_(["completed"]),
             Order.created_at >= start_last_month,
             Order.created_at < start_month
         )
@@ -112,6 +126,18 @@ def dashboard_summary():
 
     this_month_net_profit = revenue_this_month - total_spent_this_month
     last_month_net_profit = revenue_last_month - total_spent_last_month
+
+    total_spent = (
+            db.session.query(func.coalesce(func.sum(InventoryVariation.spent), Decimal("0.00")))
+            .filter(InventoryVariation.status.in_(["onhand", "preorder"]))
+            .scalar()
+    )
+
+    total_value_in_stocks_profit = (
+            db.session.query(func.coalesce(func.sum(InventoryVariation.price), Decimal("0.00")))
+            .filter(InventoryVariation.status.in_(["onhand", "preorder"]))
+            .scalar()
+    )
 
     return jsonify({
         "pending_orders": pending_orders,
@@ -125,7 +151,6 @@ def dashboard_summary():
             "count": orders_this_week,
             "delta": orders_delta,
         },
-
         "revenue_this_month": {
             "amount": float(revenue_this_month),
             "delta": float(revenue_delta),
@@ -135,5 +160,55 @@ def dashboard_summary():
             "amount": float(this_month_net_profit),
             "spent": float(total_spent_this_month),
             "delta": float(this_month_net_profit - last_month_net_profit)
-        }
+        },
+        "total_value_in_stocks": float(total_spent),
+        "total_value_in_stocks_profit": float(total_value_in_stocks_profit - total_spent),
     })
+
+def last_6_months_sale_bar_chart():
+    now = datetime.now()
+    start_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    months = []
+    for i in range(6):
+        month_start = (start_month - timedelta(days=i * 30)).replace(day=1)
+        month_end = (month_start + timedelta(days=32)).replace(day=1)
+
+        cost = (
+            db.session.query(func.coalesce(func.sum(OrderItem.quantity * InventoryVariation.spent), Decimal("0.00")))
+            .join(Order, OrderItem.order_id == Order.id)
+            .join(InventoryVariation, OrderItem.variation_id == InventoryVariation.id)
+            .filter(
+                Order.status.in_(["completed"]),
+                Order.created_at >= month_start,
+                Order.created_at < month_end
+            )
+            .scalar()
+        )
+
+        profit = (
+            db.session.query(func.coalesce(func.sum(Payment.received_amount), Decimal("0.00")))
+            .filter(
+                Payment.created_at >= month_start,
+                Payment.created_at < month_end
+            )
+            .filter(
+                Payment.order_id.in_(
+                    db.session.query(Order.id)
+                    .filter(Order.status.in_(["completed"]))
+                )
+            )
+            .scalar()
+        ) - cost
+
+        
+
+        months.append({
+            "month": month_start.strftime("%b"),
+            "spent": float(cost),
+            "profit": float(profit)
+        })
+
+
+
+    return jsonify(months[::-1]) 

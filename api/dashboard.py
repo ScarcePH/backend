@@ -5,6 +5,8 @@ from db.database import db
 from db.models import Inventory, InventoryVariation
 from sqlalchemy import func
 from collections import defaultdict
+from db.repository.dashboard import last_6_months_sale_bar_chart
+
 
 
 
@@ -14,6 +16,11 @@ dashboard_bp = Blueprint("dashboard", __name__)
 @auth_required(allowed_roles=["super_admin"])
 def summary_cards():
     return dashboard_summary()
+
+@dashboard_bp.route("/dashboard/sales-bar-chart", methods=["GET"])
+@auth_required(allowed_roles=["super_admin"])
+def bar_chart():
+    return last_6_months_sale_bar_chart()
 
 @dashboard_bp.route("/dashboard/bestseller", methods=["GET"])
 @auth_required(allowed_roles=["super_admin"])
@@ -78,8 +85,6 @@ def best_selling():
         grouped.values(),
         key=lambda x: x["total_revenue"],
         reverse=True
-    )[:3]
+    )[:6]
 
     return jsonify(result)
-
-
