@@ -12,10 +12,10 @@ from db.repository.dashboard import last_6_months_sale_bar_chart
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
-# @dashboard_bp.route("/dashboard/summary", methods=["GET"])
-# @auth_required(allowed_roles=["super_admin"])
-# def summary_cards():
-#     return dashboard_summary()
+@dashboard_bp.route("/dashboard/summary", methods=["GET"])
+@auth_required(allowed_roles=["super_admin"])
+def summary_cards():
+    return dashboard_summary()
 
 @dashboard_bp.route("/dashboard/sales-bar-chart", methods=["GET"])
 @auth_required(allowed_roles=["super_admin"])
