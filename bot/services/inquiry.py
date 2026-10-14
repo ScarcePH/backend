@@ -39,17 +39,7 @@ def reset_confusion(sender_id):
         return
 
 
-def _message_without_size(message, size):
-    text = str(message or "")
-    if size:
-        text = re.sub(rf"\b{re.escape(str(size))}\s*(?:us)?\b", " ", text, flags=re.I)
-    text = re.sub(
-        r"\b(size|sz|avail|available|naa|meron|pa|po|price|hm|how much|us)\b",
-        " ",
-        text,
-        flags=re.I,
-    )
-    return re.sub(r"\s+", " ", text).strip(" ?.,!")
+
 
 
 def build_intent_result(message, sender_id=None):
@@ -81,10 +71,6 @@ def build_intent_result(message, sender_id=None):
     intent = analysis.get("intent") or "smalltalk"
     size = extracted_size or analysis.get("size") or ""
     item = (analysis.get("item") or "").strip()
-    if not item and size:
-        item = _message_without_size(message, size)
-    if item and item.lower() in {"size", "sz", "avail", "available", "naa", "meron"}:
-        item = ""
 
     needs_handover = intent == "handover"
     confidence = "high" if item and (size or intent in SALES_INTENTS) else "low"
@@ -133,8 +119,9 @@ def _send_size_only(sender_id, size):
     stocks = get_item_sizes(size)
     if stocks.get("found"):
         reset_confusion(sender_id)
-        reply(sender_id, f"Here are available pairs in US {size}.")
+        reply(sender_id, f"As of now, Here are available pairs in Size {size}us.")
         send_carousel(sender_id, stocks["items"])
+        reply(sender_id, "Need more help? tap the options below.", QUICK_REPLIES)
         return "ok"
 
     reply(sender_id, f"We don't have available pairs in US {size} right now. What pair do you want us to watch for?")

@@ -1,5 +1,5 @@
 
-BOT_TAG = " --Scarceᴾᴴ Bot"
+BOT_TAG = " \n 🤖 Scarceᴾᴴ AI · AI can make mistakes."
 WELCOME_MSG = "Hi there! Welcome to Scarceᴾᴴ 👋\nHow can we help you today?"
 ERROR_MSG = "I didn't catch that. What item are you looking for?"
 CONFIRM_HEADER = "All set!\n\n🛒 *Checkout Submitted*\n"

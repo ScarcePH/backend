@@ -100,8 +100,8 @@ class BotInquiryTestCase(unittest.TestCase):
 
         gpt.assert_not_called()
         self.push.assert_called_once_with("sender-1", "size 9?")
-        self.reply.assert_called_with("sender-1", "Here are available pairs in US 9.")
         self.carousel.assert_called_once()
+        self.reply.assert_called_with("sender-1", "Need more help? tap the options below.", inquiry.QUICK_REPLIES)
 
     def test_known_item_size_only_inquiry_uses_awaited_item_without_gpt(self):
         with patch.object(inquiry, "get_gpt_analysis") as gpt, patch.object(
