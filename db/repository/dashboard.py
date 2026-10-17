@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from db.database import db
 from db.models import Order, OrderItem, Payment, InventoryVariation, CheckoutSession
+from dateutil.relativedelta import relativedelta
+
+from db.models.inventory import Inventory
 
 
 def dashboard_summary():
@@ -205,10 +208,128 @@ def last_6_months_sale_bar_chart():
 
         months.append({
             "month": month_start.strftime("%b"),
-            "spent": float(cost),
+            "cost": float(cost),
             "profit": float(profit)
         })
 
 
 
     return jsonify(months[::-1]) 
+
+def last_3_months_cc_statement():
+    now = datetime.now()
+
+    if now.day >= 26:
+        current_period_start = now.replace(
+            day=26, hour=0, minute=0, second=0, microsecond=0
+        )
+    else:
+        previous_month = now - relativedelta(months=1)
+        current_period_start = previous_month.replace(
+            day=26, hour=0, minute=0, second=0, microsecond=0
+        )
+
+    periods = []
+
+    for i in range(2, -1, -1):
+        period_start = current_period_start - relativedelta(months=i)
+        period_end = period_start + relativedelta(months=1)
+
+        period_end = period_end.replace(day=26)
+
+        cost = (
+            db.session.query(
+                func.coalesce(func.sum(InventoryVariation.spent), Decimal("0.00"))
+            )
+            .filter(
+                InventoryVariation.created_at >= period_start,
+                InventoryVariation.created_at < period_end
+            )
+            .scalar()
+        )
+
+        payment_received = (
+            db.session.query(
+                func.coalesce(
+                    func.sum(Payment.received_amount),
+                    Decimal("0.00")
+                )
+            )
+            .filter(
+                Payment.created_at >= period_start,
+                Payment.created_at < period_end
+            )
+            .scalar()
+        )
+
+
+        label = (
+            f"{period_start.strftime('%b %d')} - "
+            f"{(period_end - timedelta(days=1)).strftime('%b %d')}"
+        )
+
+        periods.append({
+            "month": label,
+            "cost": float(cost),
+            "payment_received": float(payment_received),
+            
+        })
+
+    return jsonify(periods)
+
+from sqlalchemy import func
+from flask import jsonify
+
+def purchase_statement(start_date, end_date):
+    purchase = (
+        db.session.query(
+            InventoryVariation.id.label("variation_id"),
+            Inventory.name.label("inventory_name"),
+            InventoryVariation.condition.label("condition"),
+            InventoryVariation.size.label("size"),
+            func.coalesce(
+                func.sum(
+                    InventoryVariation.quantity_purchased * InventoryVariation.spent
+                ),
+                0
+            ).label("total_spent"),
+            func.coalesce(
+                func.sum(
+                    InventoryVariation.quantity_purchased * InventoryVariation.price
+                ),
+                0
+            ).label("total_price"),
+        )
+        .join(
+            Inventory,
+            InventoryVariation.inventory_id == Inventory.id
+        )
+        .filter(
+            InventoryVariation.created_at >= start_date,
+            InventoryVariation.created_at < end_date
+        )
+        .group_by(
+            InventoryVariation.id,
+            Inventory.name,
+            InventoryVariation.condition,
+            InventoryVariation.size
+        )
+        .all()
+    )
+
+    result = [
+        {
+            "variation_id": row.variation_id,
+            "inventory_name": row.inventory_name,
+            "condition": row.condition,
+            "size": row.size,
+            "total_spent": float(row.total_spent or 0),
+            "total_price": float(row.total_price or 0),
+        }
+        for row in purchase
+    ]
+
+    total_spent = sum(row["total_spent"] for row in result)
+    total_price = sum(row["total_price"] for row in result)
+
+    return jsonify({"data": result, "total_spent": float(total_spent), "total_price": float(total_price)})

@@ -14,8 +14,11 @@ class InventoryVariation(db.Model):
     image = db.Column(db.String)
     status = db.Column(db.String)
     stock = db.Column(db.Integer, default=0)
+    quantity_purchased = db.Column(db.Integer, default=1)
     url = db.Column(db.String)
     spent = db.Column(db.Numeric(10,2))
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     def to_dict(self):
         try:
@@ -32,6 +35,8 @@ class InventoryVariation(db.Model):
             "status": self.status,
             "stock": self.stock,
             "url": self.url,
-            "spent": self.spent
+            "spent": self.spent,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
