@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from middleware.auth_required import auth_required
-from db.repository.dashboard import dashboard_summary, last_3_months_cc_statement, purchase_statement
+from db.repository.dashboard import dashboard_summary, income_statement, last_3_months_cc_statement, purchase_statement
 from db.database import db
 from db.models import Inventory, InventoryVariation
 from sqlalchemy import func
@@ -33,6 +33,13 @@ def purchase_statement_route():
     start_date = request.args.get("start_date")
     end_date = request.args.get("end_date")
     return purchase_statement(start_date, end_date)
+
+@dashboard_bp.route("/dashboard/income-statement", methods=["GET"])
+@auth_required(allowed_roles=["super_admin"])
+def income_statement_route():
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+    return income_statement(start_date, end_date)
 
 @dashboard_bp.route("/dashboard/bestseller", methods=["GET"])
 @auth_required(allowed_roles=["super_admin"])
