@@ -277,14 +277,12 @@ def last_3_months_cc_statement():
 
     return jsonify(periods)
 
-from sqlalchemy import func
-from flask import jsonify
-
 def purchase_statement(start_date, end_date):
     purchase = (
         db.session.query(
             InventoryVariation.id.label("variation_id"),
             Inventory.name.label("inventory_name"),
+            InventoryVariation.created_at.label("date"),
             InventoryVariation.condition.label("condition"),
             InventoryVariation.size.label("size"),
             func.coalesce(
@@ -312,7 +310,8 @@ def purchase_statement(start_date, end_date):
             InventoryVariation.id,
             Inventory.name,
             InventoryVariation.condition,
-            InventoryVariation.size
+            InventoryVariation.size,
+            InventoryVariation.created_at
         )
         .all()
     )
@@ -323,6 +322,7 @@ def purchase_statement(start_date, end_date):
             "inventory_name": row.inventory_name,
             "condition": row.condition,
             "size": row.size,
+            "date": row.date.strftime('%b %d'),
             "total_spent": float(row.total_spent or 0),
             "total_price": float(row.total_price or 0),
         }
@@ -333,3 +333,51 @@ def purchase_statement(start_date, end_date):
     total_price = sum(row["total_price"] for row in result)
 
     return jsonify({"data": result, "total_spent": float(total_spent), "total_price": float(total_price)})
+
+def income_statement(start_date, end_date):
+   
+
+    income = (
+        db.session.query(
+            Order.id.label("order_id"),
+            InventoryVariation.id.label("variation_id"),
+            Inventory.name.label("inventory_name"),
+            InventoryVariation.condition.label("condition"),
+            InventoryVariation.size.label("size"),
+            Payment.created_at.label("date"),
+            func.coalesce(func.sum(Payment.received_amount), Decimal("0.00")).label("total_received"),
+            func.coalesce(func.sum(OrderItem.quantity * InventoryVariation.spent), Decimal("0.00")).label("total_spent"),
+        )
+        .join(Payment, Payment.order_id == Order.id)
+        .join(OrderItem, OrderItem.order_id == Order.id)
+        .join(InventoryVariation, OrderItem.variation_id == InventoryVariation.id)
+        .join(Inventory, InventoryVariation.inventory_id == Inventory.id)
+        .filter(
+            Order.status.in_(["completed", "confirmed"]),
+            Payment.created_at >= start_date,
+            Payment.created_at < end_date
+        )
+        .group_by(Order.id, InventoryVariation.id, Inventory.name, InventoryVariation.condition, InventoryVariation.size, Payment.created_at)
+        .all()
+    )
+
+    result = [
+        {
+            "order_id": row.order_id,
+            "variation_id": row.variation_id,
+            "inventory_name": row.inventory_name,
+            "date": row.date.strftime('%b %d'),
+            "condition": row.condition,
+            "size": row.size,
+            "total_received": float(row.total_received),
+            "total_spent": float(row.total_spent),
+            "net_profit": float(row.total_received - row.total_spent),
+        }
+        for row in income
+    ]
+
+    total_received = sum(row["total_received"] for row in result)
+    total_spent = sum(row["total_spent"] for row in result)
+    total_net_profit = total_received - total_spent
+
+    return jsonify({"data": result, "total_received": float(total_received), "total_spent": float(total_spent), "total_net_profit": float(total_net_profit)})
