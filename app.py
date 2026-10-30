@@ -4,7 +4,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from bot.webhook_handler import bot_bp
-from api import customers_bp, orders_bp, inventory_bp, auth_bp, dashboard_bp, cart_bp, checkout_bp, promotions_bp
+from api import (
+    auth_bp,
+    cart_bp,
+    checkout_bp,
+    customers_bp,
+    data_deletion_bp,
+    dashboard_bp,
+    inventory_bp,
+    orders_bp,
+    promotions_bp,
+)
 from db.database import db, migrate
 from config import Config
 import os
@@ -53,6 +63,7 @@ app.register_blueprint(dashboard_bp, url_prefix="/api")
 app.register_blueprint(cart_bp, url_prefix="/api")
 app.register_blueprint(checkout_bp, url_prefix="/api")
 app.register_blueprint(promotions_bp, url_prefix="/api")
+app.register_blueprint(data_deletion_bp, url_prefix="/api")
 
 # -------------------------------
 # WORKERS

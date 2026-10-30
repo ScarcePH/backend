@@ -11,6 +11,7 @@ from .checkout_session import CheckoutSession
 from .order_item import OrderItem
 from .promotion import Promotion
 from .promotion_item import PromotionItem
+from .data_deletion_request import DataDeletionRequest
 
 __all__ = [
     "Customers",
@@ -26,4 +27,5 @@ __all__ = [
     "OrderItem",
     "Promotion",
     "PromotionItem",
+    "DataDeletionRequest",
 ]
