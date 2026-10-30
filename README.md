@@ -45,7 +45,7 @@ Start from [`.env.example`](.env.example). These variables are required at start
 | `DB_URI` | PostgreSQL SQLAlchemy URL |
 | `REDIS_URL` | Checkout state, handover context, sender locks, and 24-hour event deduplication |
 | `JWT_SECRET_KEY` | API JWTs and fallback signing key for admin approval links |
-| `APP_SECRET` | Meta webhook signature verification |
+| `APP_SECRET` | Verify Meta webhook and data-deletion callback signatures |
 | `VERIFY_TOKEN` | Meta webhook setup challenge |
 | `PAGE_ACCESS_TOKEN` | Graph API Messenger sends |
 | `PAGE_APP_ID` | Detect staff/Page echo messages |
@@ -66,6 +66,23 @@ Optional tuning:
 - `BOT_DEPOSIT_AMOUNT` defaults to `1000` and applies to preorder/COD/COP deposits, capped at the current database price.
 - Set `META_GRAPH_API_VERSION` to the Graph version approved for your Meta app. The code currently preserves `v17.0` as its default, so production should set this explicitly.
 - `OPENAI_API_KEY` and `SYSTEM_PROMPT_ANALYSIS` are used for idle sales inquiries, never for active checkout transitions.
+
+## Meta data deletion callback
+
+Set the Meta App Dashboard **Data Deletion Request URL** to
+`https://<your-backend-host>/data-deletion`. The callback verifies Meta's
+`signed_request` with `APP_SECRET`, removes the matching Messenger identifier,
+contact details, inquiry and conversation state, and stored payment-proof images.
+Order and transaction records are retained where needed for fulfillment,
+accounting, or legal obligations, with direct customer contact details removed.
+Meta receives a confirmation code and an HTTPS status URL at
+`/data-deletion-status/<confirmation_code>`.
+
+Apply the `data_deletion_requests` migration before enabling the callback:
+
+```bash
+flask db upgrade
+```
 
 Generate secrets instead of inventing short values:
 
