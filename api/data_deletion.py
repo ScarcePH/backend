@@ -23,7 +23,6 @@ SENDER_LOCK_WAIT_SECONDS = 15
 
 
 def _decode_signed_request(signed_request):
-    print('signed_request', signed_request )
 
     if not isinstance(signed_request, str):
         return None
@@ -47,13 +46,11 @@ def _decode_signed_request(signed_request):
         )
         payload = json.loads(payload_bytes)
     except (binascii.Error, UnicodeError, ValueError):
-        print(binascii.Error, UnicodeError, ValueError)
         return None
        
 
     app_secret = os.environ.get("APP_SECRET")
 
-    print("app_secret", app_secret)
 
     if not app_secret or not isinstance(payload, dict):
         return None
@@ -65,10 +62,6 @@ def _decode_signed_request(signed_request):
     ).digest()
     if not hmac.compare_digest(signature, expected_signature):
         return None
-
-    print('signature',signature)
-    print('expected_signature', expected_signature)
-    print("payload", payload)
 
     algorithm = payload.get("algorithm")
     if not isinstance(algorithm, str) or algorithm.upper() != "HMAC-SHA256":
@@ -173,7 +166,6 @@ def _delete_sender_data(sender_id):
 @data_deletion_bp.post("/data-deletion")
 def data_deletion_callback():
     sender_id = _decode_signed_request(request.form.get("signed_request"))
-    print("sender_id", sender_id)
     if sender_id is None:
         return jsonify({"error": "Invalid signed_request"}), 400
 
