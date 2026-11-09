@@ -13,6 +13,7 @@ from api import (
     dashboard_bp,
     inventory_bp,
     orders_bp,
+    purchases_bp,
     promotions_bp,
 )
 from db.database import db, migrate
@@ -57,6 +58,7 @@ app.register_blueprint(bot_bp)
 # -------------------------------
 app.register_blueprint(customers_bp, url_prefix="/api")
 app.register_blueprint(orders_bp, url_prefix="/api")
+app.register_blueprint(purchases_bp, url_prefix="/api")
 app.register_blueprint(inventory_bp, url_prefix="/api")
 app.register_blueprint(auth_bp, url_prefix="/api")
 app.register_blueprint(dashboard_bp, url_prefix="/api")

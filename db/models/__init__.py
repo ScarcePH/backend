@@ -12,6 +12,8 @@ from .order_item import OrderItem
 from .promotion import Promotion
 from .promotion_item import PromotionItem
 from .data_deletion_request import DataDeletionRequest
+from .purchase import Purchase
+from .purchase_item import PurchaseItem
 
 __all__ = [
     "Customers",
@@ -28,4 +30,6 @@ __all__ = [
     "Promotion",
     "PromotionItem",
     "DataDeletionRequest",
+    "Purchase",
+    "PurchaseItem",
 ]
