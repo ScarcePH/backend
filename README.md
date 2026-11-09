@@ -190,6 +190,32 @@ Customer selects variation
 
 Cancel and Start over invalidate the persisted checkout, including while the conversation is in human handover. Proof-submitted or expired sessions cannot silently create orders.
 
+## Purchase cost records
+
+Customer-facing prices remain on inventory variations (`price`). Record supplier costs separately with the admin-only `POST /api/purchases` endpoint; these records do not change the price shown to customers or charged at checkout. Each purchase can contain multiple variation lines, shipping/other fees are allocated across those lines by their item cost, and `order_id` can be supplied to associate a preorder purchase with its customer order. Purchases without an `order_id` can be used for general restocks.
+
+Example request:
+
+```json
+{
+  "supplier": "Supplier name",
+  "order_id": 123,
+  "purchase_date": "2026-11-07",
+  "shipping_fees": "250.00",
+  "other_fees": "0.00",
+  "notes": "Preorder sourcing",
+  "items": [
+    {
+      "variation_id": 45,
+      "quantity": 1,
+      "unit_cost": "3200.00"
+    }
+  ]
+}
+```
+
+Use `GET /api/purchases` to list records (optional `start_date`, exclusive `end_date`, `limit`, and `offset` query parameters), `GET /api/purchases/<id>` to fetch one, and `/api/dashboard/purchase-statement` for actual purchase totals. Purchase endpoints require a `super_admin` token. The purchase-record migration backfills each variation with a recorded `spent` value as a purchase item, using its `quantity_purchased` (or one unit when that value is null), listed price, and creation date. Sale COGS is assigned from purchase layers in FIFO order by purchase date, including allocated fees; income-statement rows report line revenue, COGS, and profit. Rows whose sale quantity cannot be fully matched to available purchase quantities report `cost_data_complete: false` and a null profit rather than treating missing costs as zero. Existing variation-level cost fields remain for compatibility but are no longer included in inventory/catalog responses.
+
 ## 8. Verify the installation
 
 Run the test suite and syntax checks:

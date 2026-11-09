@@ -50,9 +50,13 @@ def best_selling():
             Inventory.name.label("inventory_name"),
             Inventory.image.label("image"),
             InventoryVariation.size.label("size"),
-            func.count(InventoryVariation.id).label("sold_count"),
             func.coalesce(
-                func.sum(InventoryVariation.price), 0
+                func.sum(InventoryVariation.quantity_purchased), 0
+            ).label("sold_count"),
+            func.coalesce(
+                func.sum(
+                    InventoryVariation.price * InventoryVariation.quantity_purchased
+                ), 0
             ).label("revenue"),
         )
         .join(

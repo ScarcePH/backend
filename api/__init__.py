@@ -7,6 +7,7 @@ from api.cart import cart_bp
 from api.checkout import checkout_bp
 from api.promotions import promotions_bp
 from api.data_deletion import data_deletion_bp
+from api.purchases import purchases_bp
 
 __all__ = [
     "customers_bp",
@@ -18,4 +19,5 @@ __all__ = [
     "checkout_bp",
     "promotions_bp",
     "data_deletion_bp",
+    "purchases_bp",
 ]
